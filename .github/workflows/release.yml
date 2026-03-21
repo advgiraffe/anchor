@@ -13,6 +13,14 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+          registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
-      - run: pnpm release
+      - name: Publish packages
+        if: ${{ secrets.NPM_TOKEN != '' }}
+        run: pnpm release
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Skip publish (missing NPM_TOKEN)
+        if: ${{ secrets.NPM_TOKEN == '' }}
+        run: echo "::warning::NPM_TOKEN secret is not configured. Skipping npm publish."
 
