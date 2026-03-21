@@ -1,5 +1,10 @@
 import { spawnSync } from "node:child_process";
 import type { Command } from "commander";
+import {
+  ANTHROPIC_KEY_ENV_OVERRIDE_VAR,
+  getAnthropicEnvVarCandidates,
+  resolveAnthropicApiKey,
+} from "@anchor-ai/core";
 
 interface CheckResult {
   name: string;
@@ -65,18 +70,19 @@ function runChecks(): CheckResult[] {
     });
   }
 
-  const anthropicKey = process.env.ANTHROPIC_API_KEY;
-  if (anthropicKey && anthropicKey.trim().length > 0) {
+  const anthropicKey = resolveAnthropicApiKey();
+  if (anthropicKey) {
     results.push({
       name: "anthropic_key",
       status: "ok",
-      message: "ANTHROPIC_API_KEY is set",
+      message: `${anthropicKey.source} is set`,
     });
   } else {
+    const checked = getAnthropicEnvVarCandidates();
     results.push({
       name: "anthropic_key",
       status: "warn",
-      message: "ANTHROPIC_API_KEY is missing (required for LLM classification)",
+      message: `missing. Checked ${checked.join(", ")}. Set ANCHOR_ANTHROPIC_KEY or ANTHROPIC_API_KEY. Override with ${ANTHROPIC_KEY_ENV_OVERRIDE_VAR} if needed.`,
     });
   }
 

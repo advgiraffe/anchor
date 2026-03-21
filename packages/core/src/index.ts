@@ -5,3 +5,11 @@ export * from "./errors/LlmApiError.js";
 export * from "./errors/ConfigError.js";
 export * from "./errors/ParseError.js";
 export * from "./logger/Logger.js";
+export * from "./llm/LlmClient.js";
+
+// Phase 1A: Single-file markdown diff
+export { GitExtractor } from "./git/GitExtractor.js";
+export { MarkdownParser, type ParsedSection } from "./diff/text/parsers/MarkdownParser.js";
+export { SectionDiffer, type SectionChange } from "./diff/text/SectionDiffer.js";
+export { AnthropicClient, type LlmResponse, type LlmMessage } from "./llm/providers/AnthropicClient.js";
+export { SectionClassifier, type ClassificationResult } from "./llm/SectionClassifier.js";
