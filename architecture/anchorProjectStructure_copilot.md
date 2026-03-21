@@ -1,0 +1,266 @@
+# Plan: Anchor Monorepo Project Structure
+
+**TL;DR:** Two-package npm workspace monorepo — `@anchor-ai/core` (the pure engine, importable as a library by third parties) and `@anchor-ai/anchor` (the CLI binary + MCP server). Plugin interfaces are defined in `core` and all built-in implementations are first-class plugins. Prompts are versioned as files, not inline strings. The repo dogfoods its own tool.
+
+---
+
+## Top-level layout
+
+```
+anchor/
+├── packages/
+│   ├── core/                 @anchor-ai/core — engine only, no CLI/MCP deps
+│   └── cli/                  @anchor-ai/anchor — CLI binary + MCP server
+├── templates/                Host integration templates (shipped with CLI)
+├── tests/                    Cross-package integration + git fixture repos
+├── docs/                     Spec, ADRs, architecture notes
+├── scripts/                  Fixture repo seeder, bundle-size check
+├── .github/                  CI, release workflow, self-check
+├── .anchor.yaml              🐶 Dogfooding: Anchor on its own docs/
+├── package.json              npm workspaces root
+├── tsconfig.base.json
+├── vitest.workspace.ts
+└── CHANGELOG.md
+```
+
+---
+
+## `packages/core/src/` — `@anchor-ai/core`
+
+The importable engine. Zero CLI dependencies. Everything else builds on this.
+
+```
+models/               TypeScript interfaces from spec §11 (AnchorResult, FileDelta, etc.)
+errors/               Typed hierarchy: AnchorError → GitError, LlmApiError, ConfigError, ParseError
+logger/               Structured logging interface (swappable backend)
+
+plugins/              Plugin architecture from day one
+  PluginRegistry.ts   Central registry for all extension points
+  types.ts            IDocumentParser, IExtractor, ILlmProvider, IOutputFormatter
+
+config/
+  AnchorConfig.ts     Config shape (mirrors .anchor.yaml §12)
+  ConfigLoader.ts     js-yaml loader + schema validation
+
+git/
+  GitExtractor.ts     simple-git blob extraction wrapper
+  GitTreeDiffer.ts    File-tree comparison across refs
+
+llm/
+  LlmClient.ts        Interface (implements ILlmProvider)
+  LlmClientFactory.ts Config-driven provider → concrete client
+  AnthropicClient.ts  @anthropic-ai/sdk + prompt caching
+  OpenAiClient.ts
+  AzureOpenAiClient.ts
+  OllamaClient.ts
+  RateLimiter.ts      Token-bucket + retry logic
+  SectionClassifier.ts
+  ImageDiffDescriber.ts
+  InstructionGenerator.ts
+
+prompts/              Version-controlled prompt templates (not inline strings)
+  classify-section.md
+  describe-image-diff.md
+  generate-instructions.md
+  baseline-section.md
+
+cache/                Disk-based LLM response cache (dev productivity, toggleable)
+  LlmCache.ts         Interface
+  FileCache.ts        File-system implementation
+
+diff/
+  CorpusTreeDiffer.ts
+  CrossAssetCorrelator.ts
+  text/
+    DocumentParser.ts       IDocumentParser interface (pluggable strategy)
+    SectionDiffer.ts        Fuzzy heading match + structural diff
+    parsers/                Built-in parser plugins
+      MarkdownParser.ts
+      OpenApiParser.ts
+      AsyncApiParser.ts     AsyncAPI is a listed use case (§2) but missing from spec tree
+      PlainTextParser.ts
+      PdfParser.ts          Text extraction for PDF pipeline (§7.1)
+  images/
+    PerceptualHasher.ts     sharp pHash
+    ImageRoleClassifier.ts
+    ImageChangeDetector.ts
+    PdfPageRenderer.ts      Render PDF pages → images for image pipeline
+
+routing/
+  TargetRouter.ts
+  GlobMatcher.ts            minimatch
+
+baseline/
+  extractors/
+    BaseExtractor.ts        Abstract base + IExtractor plugin interface
+    RouteExtractor.ts       Express, Fastify, Next.js, tRPC
+    SchemaExtractor.ts      Prisma, Drizzle, Zod, TypeORM
+    ScreenExtractor.ts      React/RN component tree
+    OpenApiExtractor.ts
+    AssetExtractor.ts
+    PackageExtractor.ts
+    ConfigExtractor.ts      Present in spec §6.2 table but missing from §13 source tree
+  SectionGenerator.ts       Haiku pass: code → spec prose
+  CorpusWriter.ts
+  TargetDetector.ts
+```
+
+---
+
+## `packages/cli/src/` — `@anchor-ai/anchor`
+
+The binary users install. Depends on `@anchor-ai/core`.
+
+```
+index.ts                Commander.js root
+commands/
+  baseline.ts
+  compare.ts
+  watch.ts              chokidar daemon
+  init.ts               anchor init --host [claude|copilot|cursor|windsurf|openclaw]
+  mcp.ts                Starts MCP server (stdio or SSE)
+  targets.ts            anchor targets command (in spec §10 MCP tools but missing from §13 CLI tree)
+
+output/
+  FormatterRegistry.ts  Pluggable formatters (implements IOutputFormatter)
+  json.ts
+  markdown.ts
+  instructions.ts       .anchor/instructions/{target}.md writer
+  github-pr.ts          Future placeholder: PR review comment format
+
+mcp/
+  McpServer.ts          @modelcontextprotocol/sdk, stdio + SSE
+  tools/
+    CompareCorpusTool.ts
+    CompareFileTool.ts
+    ManifestTool.ts
+    HistoryTool.ts
+    TargetsTool.ts
+    BaselineStatusTool.ts
+```
+
+---
+
+## `templates/`
+
+Distributed with the CLI package. Generated by `anchor init --host`.
+
+```
+templates/
+├── claude/
+│   ├── CLAUDE.md.template
+│   └── anchor-check.md.template          Slash command
+├── copilot/
+│   ├── copilot-instructions.md.template
+│   └── anchor-skill.md.template          Fallback for non-MCP contexts
+├── cursor/
+│   └── anchor.mdc.template
+├── windsurf/
+│   └── anchor.windsurfrules.template     Mentioned in §8.5 but missing from §13 template tree
+├── openclaw/
+│   └── openclaw-workflow.yaml.template
+└── github-actions/
+    └── anchor.yml.template
+```
+
+---
+
+## `tests/`
+
+```
+tests/
+├── integration/
+│   ├── cli/            CLI invocation e2e (real git repos, real output)
+│   └── mcp/            MCP protocol conformance
+└── fixtures/
+    ├── repos/          Committed git repos (seeded by scripts/) — deterministic diff targets
+    │   ├── simple-spec/
+    │   ├── corpus-spec/
+    │   └── image-changes/
+    └── codebases/      Sample apps for baseline testing
+        ├── express-app/
+        ├── nextjs-app/
+        └── react-native-app/
+```
+
+Unit tests live co-located in each package:
+- `packages/core/tests/unit/`
+- `packages/cli/tests/unit/`
+
+---
+
+## `docs/`
+
+```
+docs/
+├── anchor-spec.md        Existing spec
+├── architecture.md       Implementation decisions
+├── contributing.md
+└── adr/                  Architecture Decision Records
+    ├── 001-monorepo.md
+    ├── 002-plugin-registry.md
+    ├── 003-llm-token-strategy.md
+    └── 004-prompt-files.md   Why prompts are files, not inline strings
+```
+
+---
+
+## `.github/`
+
+```
+.github/
+└── workflows/
+    ├── ci.yml                 Lint, typecheck, test on every PR
+    ├── release.yml            Publish to npm on version tag
+    └── anchor-selfcheck.yml   🐶 Runs Anchor on docs/ commits — dogfooding and best possible demo
+```
+
+---
+
+## Key npm dependencies
+
+| Package | Location | Purpose |
+|---|---|---|
+| `@anthropic-ai/sdk` | core | Anthropic API + vision + prompt caching |
+| `openai` | core | OpenAI provider swap |
+| `simple-git` | core | Git operations |
+| `sharp` | core | pHash + image processing |
+| `remark` / `marked` | core | Markdown parsing |
+| `js-yaml` | core | YAML config + OpenAPI parsing |
+| `minimatch` | core | Glob pattern matching |
+| `@ts-morph/common` | core | TypeScript AST for ScreenExtractor |
+| `@modelcontextprotocol/sdk` | cli | MCP server hosting |
+| `commander` | cli | CLI argument parsing |
+| `chokidar` | cli | File watching (anchor watch) |
+| `vitest` | dev | Testing (both packages) |
+
+---
+
+## Design rationale
+
+| Decision | Why |
+|---|---|
+| `core` separate from `cli` | Third parties can consume the engine programmatically without CLI/chokidar deps |
+| Plugin registry from day one | Built-ins are first-class plugins; tests can swap implementations; community extends without forking |
+| `prompts/` as `.md` files | Prompt changes are reviewable in PRs, testable for regression, and identifiable by version |
+| `cache/` module | Prevents re-spending tokens on the same section during dev iterations; toggleable in config |
+| `errors/` hierarchy | MCP tools need structured errors; CLI needs user-friendly messages; one hierarchy serves both |
+| `ConfigExtractor` added | In spec §6.2 extractor table but absent from §13 source tree |
+| `windsurf/` template added | Windsurf cited in §8.5 as supported host but omitted from §13 template tree |
+| `targets.ts` command added | `anchor targets` defined in §10 MCP interface but no CLI command in §13 |
+| `AsyncApiParser` added | §2 use cases include "AsyncAPI spec updated" but only OpenAPI parser is listed |
+| `.anchor.yaml` + `anchor-selfcheck.yml` | Dogfooding — Anchor analyzes its own spec; forces accuracy and acts as a live demo |
+
+---
+
+## Open questions / further considerations
+
+1. **PDF dependency weight** — `PdfParser` and `PdfPageRenderer` pull in heavy native deps (`pdf-parse`, `canvas` or `puppeteer`). Options: optional peer dep, separate `@anchor-ai/pdf` add-on package, or lazy `require()`. Decide before Phase 3.
+
+2. **LLM cache strategy** — Should `FileCache` key on `{model, prompt-hash, content-hash}`? Should `cache: disabled` in `.anchor.yaml` affect CI runs only, or also local dev? Clarify before shipping Phase 1.
+
+3. **Fixture repo approach** — `scripts/create-fixture-repos.ts` must programmatically create git repos with specific commit histories. Git bundle files committed to the repo may be smaller and more portable than generated repos. Evaluate before writing first integration tests.
+
+4. **Phase phasing of plugin API** — Define `IDocumentParser` and `IExtractor` interfaces in Phase 1 even if only used internally, so the contract is stable before any external consumers exist.
+
+5. **`@anchor-ai/core` as standalone library** — Should `core` be published to npm independently? If yes, needs its own `package.json` bin-less config and a clear public API surface (`index.ts` with explicit exports). If no, it's still a useful monorepo boundary even if only consumed by `cli`.
