@@ -28,4 +28,28 @@ describe("MarkdownParser", () => {
     expect(parser.generateSectionId("GET /users (beta)!"))
       .toBe("get-users-beta");
   });
+
+  it("creates hierarchical stable ids and disambiguates repeated headings", () => {
+    const parser = new MarkdownParser();
+    const sections = parser.parse([
+      "# Payments",
+      "Intro",
+      "## Response Codes",
+      "Top-level response code docs",
+      "## Errors",
+      "Error docs",
+      "## Response Codes",
+      "A second response code section under the same parent",
+      "### Response Codes",
+      "Nested response code docs",
+    ].join("\n"));
+
+    expect(sections.map((section) => section.id)).toEqual([
+      "payments",
+      "payments-response-codes",
+      "payments-errors",
+      "payments-response-codes-2",
+      "payments-response-codes-2-response-codes",
+    ]);
+  });
 });

@@ -1,6 +1,14 @@
 import { type Severity } from "../models/index.js";
 import { AnthropicClient } from "./providers/AnthropicClient.js";
 
+export interface ClassificationClient {
+  call(
+    messages: Array<{ role: "user" | "assistant"; content: string }>,
+    systemPrompt?: string,
+    maxTokens?: number,
+  ): Promise<{ content: string }>;
+}
+
 export interface ClassificationResult {
   severity: Severity;
   summary: string;
@@ -8,10 +16,10 @@ export interface ClassificationResult {
 }
 
 export class SectionClassifier {
-  private client: AnthropicClient;
+  private client: ClassificationClient;
 
-  constructor(apiKey?: string) {
-    this.client = new AnthropicClient(apiKey);
+  constructor(apiKey?: string, client?: ClassificationClient) {
+    this.client = client ?? new AnthropicClient(apiKey);
   }
 
   /**
@@ -39,27 +47,16 @@ Respond with a JSON object: {"severity": "BREAKING"|"BEHAVIORAL"|"INFORMATIONAL"
       changeType
     );
 
-    const response = await this.client.call(
-      [{ role: "user", content: userPrompt }],
-      systemPrompt,
-      512
-    );
-
     try {
-      const result = JSON.parse(response.content) as ClassificationResult;
-      this.validateSeverity(result.severity);
-      return result;
-    } catch (error) {
-      // Fallback parsing if JSON is wrapped in markdown
-      const jsonMatch = response.content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const result = JSON.parse(jsonMatch[0]) as ClassificationResult;
-        this.validateSeverity(result.severity);
-        return result;
-      }
-      throw new Error(
-        `Failed to parse classification response: ${response.content}`
+      const response = await this.client.call(
+        [{ role: "user", content: userPrompt }],
+        systemPrompt,
+        512
       );
+
+      return this.parseClassification(response.content);
+    } catch {
+      return this.fallbackClassification(title, oldContent, newContent, changeType);
     }
   }
 
@@ -122,6 +119,65 @@ Respond with a JSON object: {"severity": "BREAKING"|"BEHAVIORAL"|"INFORMATIONAL"
   private truncate(content: string, maxLength: number): string {
     if (content.length <= maxLength) return content;
     return content.slice(0, maxLength) + `\n... (truncated)`;
+  }
+
+  private parseClassification(content: string): ClassificationResult {
+    try {
+      const result = JSON.parse(content) as ClassificationResult;
+      this.validateSeverity(result.severity);
+      return result;
+    } catch {
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error(`Failed to parse classification response: ${content}`);
+      }
+
+      const result = JSON.parse(jsonMatch[0]) as ClassificationResult;
+      this.validateSeverity(result.severity);
+      return result;
+    }
+  }
+
+  private fallbackClassification(
+    title: string,
+    oldContent: string | undefined,
+    newContent: string | undefined,
+    changeType: "ADDED" | "REMOVED" | "MODIFIED",
+  ): ClassificationResult {
+    const combined = `${title}\n${oldContent ?? ""}\n${newContent ?? ""}`.toLowerCase();
+
+    let severity: Severity;
+    if (changeType === "REMOVED") {
+      severity = "BREAKING";
+    } else if (/(breaking|invalid|deprecated|removed|replace|oauth|required|must)/.test(combined)) {
+      severity = changeType === "ADDED" ? "BEHAVIORAL" : "BREAKING";
+    } else if (/(add|added|new|support|status|filter|limit|rate)/.test(combined)) {
+      severity = "BEHAVIORAL";
+    } else {
+      severity = "INFORMATIONAL";
+    }
+
+    return {
+      severity,
+      summary: this.buildFallbackSummary(title, changeType, severity),
+      reasoning: `Fallback rule-based classification used for ${changeType.toLowerCase()} change`,
+    };
+  }
+
+  private buildFallbackSummary(
+    title: string,
+    changeType: "ADDED" | "REMOVED" | "MODIFIED",
+    severity: Severity,
+  ): string {
+    switch (changeType) {
+      case "REMOVED":
+        return `${title} was removed and may require consumer action`;
+      case "ADDED":
+        return `${title} was added with ${severity.toLowerCase()} impact`;
+      case "MODIFIED":
+      default:
+        return `${title} was modified with ${severity.toLowerCase()} impact`;
+    }
   }
 
   /**

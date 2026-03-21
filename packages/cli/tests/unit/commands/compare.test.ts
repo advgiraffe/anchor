@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compareAction } from "../../../src/commands/compare.js";
 import { createTempGitRepo } from "../../../../../tests/helpers/tempGitRepo.js";
-import type { AnchorResult } from "@anchor-ai/core";
+import { SectionClassifier, type AnchorResult } from "@anchor-ai/core";
 
 describe("compareAction", () => {
   it("runs compare against a temporary git repository without touching the main repo", async () => {
@@ -75,6 +75,61 @@ describe("compareAction", () => {
       expect(typedResult.fileDeltas[0].sectionDeltas.some((delta) => delta.title === "Authentication" && delta.changeType === "MODIFIED")).toBe(true);
       expect(typedResult.fileDeltas[0].sectionDeltas.some((delta) => delta.title === "Errors" && delta.changeType === "REMOVED")).toBe(true);
       expect(typedResult.fileDeltas[0].sectionDeltas.some((delta) => delta.title === "Rate Limiting" && delta.changeType === "ADDED")).toBe(true);
+    } finally {
+      repo.cleanup();
+    }
+  });
+
+  it("uses deterministic fallback classification when the classifier throws", async () => {
+    const repo = createTempGitRepo();
+
+    try {
+      const firstRef = repo.commitFile(
+        "docs/spec.md",
+        [
+          "# API",
+          "",
+          "## Authentication",
+          "Use API key",
+        ].join("\n"),
+        "initial spec",
+      );
+
+      const secondRef = repo.commitFile(
+        "docs/spec.md",
+        [
+          "# API",
+          "",
+          "## Authentication",
+          "BREAKING CHANGE: OAuth token is now required",
+        ].join("\n"),
+        "updated spec",
+      );
+
+      const result = await compareAction(
+        {
+          from: firstRef,
+          to: secondRef,
+          file: "docs/spec.md",
+        },
+        {
+          repoPath: repo.dir,
+          classifier: new SectionClassifier(undefined, {
+            async call() {
+              throw new Error("classifier unavailable");
+            },
+          }),
+          logger: {
+            debug() {},
+            info() {},
+            warn() {},
+            error() {},
+          },
+          emitResult: () => undefined,
+        },
+      );
+
+      expect(result.fileDeltas[0].sectionDeltas[0].severity).toBe("BREAKING");
     } finally {
       repo.cleanup();
     }

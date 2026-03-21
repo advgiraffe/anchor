@@ -16,8 +16,8 @@ export class SectionDiffer {
    */
   diff(oldSections: ParsedSection[], newSections: ParsedSection[]): SectionChange[] {
     const changes: SectionChange[] = [];
-    const oldMap = new Map(oldSections.map((s) => [this.getSectionKey(s), s]));
-    const newMap = new Map(newSections.map((s) => [this.getSectionKey(s), s]));
+    const oldMap = new Map(oldSections.map((section) => [section.id, section]));
+    const newMap = new Map(newSections.map((section) => [section.id, section]));
 
     // Find removed and modified sections
     for (const [key, oldSection] of oldMap) {
@@ -65,13 +65,6 @@ export class SectionDiffer {
   }
 
   /**
-   * Get section key (title + level) for matching
-   */
-  private getSectionKey(section: ParsedSection): string {
-    return `${section.level}-${section.title}`;
-  }
-
-  /**
    * Normalize content for comparison (trim whitespace, lowercase)
    */
   private normalizeContent(content: string): string {
@@ -105,7 +98,8 @@ export class SectionDiffer {
     let common = 0;
 
     for (const line of aLines) {
-      if (bLines.some((bLine) => bLine.includes(line.slice(0, 10)))) {
+      const probe = line.slice(0, 10);
+      if (probe.length > 0 && bLines.some((bLine) => bLine.includes(probe))) {
         common++;
       }
     }

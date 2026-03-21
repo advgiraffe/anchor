@@ -32,4 +32,22 @@ describe("SectionDiffer", () => {
     expect(changes.find((change) => change.title === "Errors")?.changeType).toBe("REMOVED");
     expect(changes.find((change) => change.title === "Rate Limiting")?.changeType).toBe("ADDED");
   });
+
+  it("matches repeated headings by stable section id instead of title only", () => {
+    const differ = new SectionDiffer();
+    const oldSections = [
+      section("payments-response-codes", "Response Codes", "Top-level codes"),
+      section("payments-response-codes-2", "Response Codes", "Second block"),
+    ];
+    const newSections = [
+      section("payments-response-codes", "Response Codes", "Top-level codes updated"),
+      section("payments-response-codes-2", "Response Codes", "Second block"),
+    ];
+
+    const changes = differ.diff(oldSections, newSections);
+
+    expect(changes).toHaveLength(1);
+    expect(changes[0].sectionId).toBe("payments-response-codes");
+    expect(changes[0].changeType).toBe("MODIFIED");
+  });
 });

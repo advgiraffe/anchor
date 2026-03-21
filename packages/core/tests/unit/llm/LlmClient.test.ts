@@ -5,6 +5,7 @@ import {
   getAnthropicEnvVarCandidates,
   resolveAnthropicApiKey,
 } from "../../../src/llm/LlmClient.js";
+import { SectionClassifier } from "../../../src/llm/SectionClassifier.js";
 
 describe("Anthropic key resolution", () => {
   it("prefers Anchor-specific env vars before provider default", () => {
@@ -37,5 +38,30 @@ describe("Anthropic key resolution", () => {
     expect(message).toContain("ANCHOR_ANTHROPIC_KEY");
     expect(message).toContain("ANTHROPIC_API_KEY");
     expect(message).toContain("ANCHOR_ANTHROPIC_KEY_ENV_VAR");
+  });
+
+  it("falls back to deterministic classification when the llm call fails", async () => {
+    const classifier = new SectionClassifier(undefined, {
+      async call() {
+        throw new Error("simulated llm outage");
+      },
+    });
+
+    const removedResult = await classifier.classifyChange(
+      "Authentication",
+      "Use API key",
+      undefined,
+      "REMOVED",
+    );
+    const modifiedResult = await classifier.classifyChange(
+      "Authentication",
+      "Use API key",
+      "BREAKING CHANGE: OAuth is now required",
+      "MODIFIED",
+    );
+
+    expect(removedResult.severity).toBe("BREAKING");
+    expect(modifiedResult.severity).toBe("BREAKING");
+    expect(modifiedResult.summary).toContain("Authentication");
   });
 });

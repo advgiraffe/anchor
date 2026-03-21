@@ -7,6 +7,7 @@ import {
   type FileDelta,
   type AnchorResult,
   ConsoleLogger,
+  type Logger,
   type Severity,
 } from "@anchor-ai/core";
 
@@ -31,7 +32,7 @@ export interface CompareDependencies {
   parser?: MarkdownParser;
   differ?: SectionDiffer;
   classifier?: CompareClassifier;
-  logger?: ConsoleLogger;
+  logger?: Logger;
   emitResult?: (result: AnchorResult) => void;
   repoPath?: string;
 }
@@ -60,7 +61,7 @@ export async function compareAction(
   opts: CompareCommandOptions,
   dependencies: CompareDependencies = {},
 ): Promise<AnchorResult> {
-  const logger = dependencies.logger ?? new ConsoleLogger("info");
+  const logger: Logger = dependencies.logger ?? new ConsoleLogger("info");
 
   // Validate arguments
   if (!opts.file && !opts.corpus) {
