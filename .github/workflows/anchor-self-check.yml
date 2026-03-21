@@ -1,0 +1,18 @@
+name: Anchor self-check
+on:
+  push:
+    branches: [main]
+    paths: ['spec/**']
+
+jobs:
+  self-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+

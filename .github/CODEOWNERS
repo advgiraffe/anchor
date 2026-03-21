@@ -1,0 +1,7 @@
+/packages/core/ @anchor-ai/core-team
+/packages/core/src/prompts/ @anchor-ai/core-team
+/packages/core/src/plugins/ @anchor-ai/core-team
+/packages/cli/ @anchor-ai/maintainers
+/templates/ @anchor-ai/contributors
+/docs/ @anchor-ai/docs-team
+
