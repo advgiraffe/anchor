@@ -1,3 +1,17 @@
+# [1.1.0](https://github.com/advgiraffe/anchor/compare/v1.0.0...v1.1.0) (2026-03-22)
+
+
+### Bug Fixes
+
+* **ci:** disable setup-node package manager auto-cache ([7de8b08](https://github.com/advgiraffe/anchor/commit/7de8b08b81531368112eb621a516cd99f5ca951d))
+* **ci:** install pnpm explicitly in release workflow ([2d06f9e](https://github.com/advgiraffe/anchor/commit/2d06f9e314fdbae6575efa1a265507ababd32d2a))
+* **ci:** remove setup-node pnpm cache requirement ([37be945](https://github.com/advgiraffe/anchor/commit/37be945b4570df1741bf44c4fd1246f148eebce5))
+
+
+### Features
+
+* **cli:** add compare output formatters and workflow fixes ([a2309d2](https://github.com/advgiraffe/anchor/commit/a2309d2313efa2f74438dc40c8b5ab7de6357f5e))
+
 # 1.0.0 (2026-03-22)
 
 
