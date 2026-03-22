@@ -1,4 +1,4 @@
-# @anchor-ai/anchor
+# @anchor_app/anchor
 
 CLI package for Anchor.
 

@@ -1,4 +1,4 @@
-# @anchor-ai/core
+# @anchor_app/core
 
 Core engine package for Anchor.
 

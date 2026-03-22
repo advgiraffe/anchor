@@ -41,7 +41,7 @@ importers:
 
   packages/cli:
     dependencies:
-      '@anchor-ai/core':
+      '@anchor_app/core':
         specifier: workspace:*
         version: link:../core
       commander:

@@ -350,7 +350,7 @@ The MCP server is the universal interface. Any MCP-compatible host can use Ancho
 
 ```bash
 # Install globally
-npm install -g @anchor-ai/anchor
+npm install -g @anchor_app/anchor
 
 # Start MCP server (stdio — Claude Code default)
 anchor mcp
@@ -550,7 +550,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
-      - run: npm install -g @anchor-ai/anchor
+      - run: npm install -g @anchor_app/anchor
       - run: anchor compare --corpus docs/specs/ --from HEAD~1 --to HEAD
                --write-instructions .anchor/instructions/
                --format json > anchor-result.json
@@ -1069,7 +1069,7 @@ anchor/
 - `AnthropicClient` Haiku text classification
 - `AnchorResult` JSON output
 - MCP tools: `anchor_compare`, `anchor_history`
-- `npm install -g @anchor-ai/anchor`, `anchor mcp`
+- `npm install -g @anchor_app/anchor`, `anchor mcp`
 - Claude Code CLAUDE.md template
 
 ### Phase 2 — Corpus / Multi-File
@@ -1116,7 +1116,7 @@ anchor/
 
 ```bash
 cd my-spaghetti-app
-npm install -g @anchor-ai/anchor
+npm install -g @anchor_app/anchor
 anchor baseline
 
 → Analyzing codebase...

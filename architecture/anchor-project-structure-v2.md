@@ -18,7 +18,7 @@ The following feedback was received from an external architect. Each point is ac
 
 **3. Atomic cache writes for crash safety.** Cache writes use `fs.writeFileSync` to a `.tmp` file followed by `fs.renameSync`. Interrupted runs (Ctrl+C mid-analysis) discard incomplete entries. A partial LLM response is never permanently cached as a valid result. If disk I/O becomes a bottleneck on very large repos (thousands of small section diffs), this can be hybridized with an in-memory buffer that flushes periodically — but atomic writes are the correct default.
 
-**4. SARIF format generation in core, SARIF file writing + webhook execution in CLI.** The `@anchor-ai/core` engine exposes an `IOutputFormatter` interface. A SARIF formatter that transforms `AnchorResult` objects into SARIF JSON strings is a pure data transformation — it belongs in core. The CLI owns the actual I/O: writing `anchor-results.sarif` to disk, performing HTTP POST for webhooks, managing secrets (Slack URLs, etc.). This preserves core as a zero-network-I/O, embeddable engine. Programmatic consumers who want webhooks write their own HTTP layer — slight friction, correct boundary.
+**4. SARIF format generation in core, SARIF file writing + webhook execution in CLI.** The `@anchor_app/core` engine exposes an `IOutputFormatter` interface. A SARIF formatter that transforms `AnchorResult` objects into SARIF JSON strings is a pure data transformation — it belongs in core. The CLI owns the actual I/O: writing `anchor-results.sarif` to disk, performing HTTP POST for webhooks, managing secrets (Slack URLs, etc.). This preserves core as a zero-network-I/O, embeddable engine. Programmatic consumers who want webhooks write their own HTTP layer — slight friction, correct boundary.
 
 **5. `TokenEstimator` added to LLM module.** Supports `--dry-run` mode on `anchor compare` by estimating token cost before making any LLM calls. Engineering managers need cost predictability to approve AI tools in CI budgets.
 
@@ -36,7 +36,7 @@ The following feedback was received from an external architect. Each point is ac
 
 **11. PR comment integration as a GitHub Actions template in `templates/`.** Rejected for Phase 1 scope. Writing a GitHub Actions workflow that posts Anchor results as PR comments requires solving authentication (GitHub token scoping), comment deduplication (don't spam the same PR), and result formatting that works across different repo structures. This is a meaningful feature but it's a Phase 4+ concern. The `anchor.yml.template` in `templates/github-actions/` already provides the CI foundation. PR commenting can be a community-contributed template later.
 
-**12. `webhooks.ts` as a built-in output module.** Rejected as a built-in. Webhook payloads are highly team-specific (Slack block kit format vs. Discord embeds vs. Teams cards vs. custom JSON). Building and maintaining formatters for each platform creates an unbounded maintenance surface. Instead, `anchor compare` supports `--format json` piped to any HTTP client (`curl`, custom scripts). The `IOutputFormatter` plugin interface allows community-contributed webhook formatters without burdening core or CLI maintenance. If demand materializes, a `@anchor-ai/webhooks` add-on package is the right vehicle.
+**12. `webhooks.ts` as a built-in output module.** Rejected as a built-in. Webhook payloads are highly team-specific (Slack block kit format vs. Discord embeds vs. Teams cards vs. custom JSON). Building and maintaining formatters for each platform creates an unbounded maintenance surface. Instead, `anchor compare` supports `--format json` piped to any HTTP client (`curl`, custom scripts). The `IOutputFormatter` plugin interface allows community-contributed webhook formatters without burdening core or CLI maintenance. If demand materializes, a `@anchor_app/webhooks` add-on package is the right vehicle.
 
 ---
 
@@ -50,9 +50,9 @@ Three approaches were evaluated:
 
 **Two-package workspace (core + cli)** — Selected. This is the right granularity for a project at Anchor's stage. It provides one meaningful architectural boundary — engine vs. application — without the overhead of managing eight package release cycles.
 
-The separation is real, not cosmetic: `@anchor-ai/core` has zero CLI, MCP, or file-watching dependencies. A third party can `npm install @anchor-ai/core` and run diffs programmatically. The CLI package depends on core and adds the binary, MCP server, file watcher, and host integration templates.
+The separation is real, not cosmetic: `@anchor_app/core` has zero CLI, MCP, or file-watching dependencies. A third party can `npm install @anchor_app/core` and run diffs programmatically. The CLI package depends on core and adds the binary, MCP server, file watcher, and host integration templates.
 
-**Future extraction is built in.** Within `@anchor-ai/core`, TypeScript path aliases simulate future package names (`@anchor/llm`, `@anchor/diff`, etc.). When a subsystem needs independent release cadence — most likely `@anchor/llm` first — the path alias is deleted, a real `package.json` is added, and import statements require zero changes.
+**Future extraction is built in.** Within `@anchor_app/core`, TypeScript path aliases simulate future package names (`@anchor/llm`, `@anchor/diff`, etc.). When a subsystem needs independent release cadence — most likely `@anchor/llm` first — the path alias is deleted, a real `package.json` is added, and import statements require zero changes.
 
 **Workspace tooling:**
 
@@ -84,7 +84,7 @@ anchor/
 │
 ├── packages/
 │   │
-│   ├── core/                       # @anchor-ai/core — pure engine, no CLI/MCP deps
+│   ├── core/                       # @anchor_app/core — pure engine, no CLI/MCP deps
 │   │   ├── package.json
 │   │   ├── tsconfig.json           # Extends ../../tsconfig.base.json, includes path aliases
 │   │   ├── README.md
@@ -202,7 +202,7 @@ anchor/
 │   │           ├── output/
 │   │           └── git/
 │   │
-│   └── cli/                               # @anchor-ai/anchor — the binary + MCP server
+│   └── cli/                               # @anchor_app/anchor — the binary + MCP server
 │       ├── package.json                   # bin: { "anchor": "./dist/index.js" }
 │       ├── tsconfig.json
 │       ├── README.md
@@ -328,14 +328,14 @@ anchor/
 ## Package Dependency Graph
 
 ```
-@anchor-ai/anchor (packages/cli)
-  └── @anchor-ai/core
+@anchor_app/anchor (packages/cli)
+  └── @anchor_app/core
 
-@anchor-ai/core (packages/core)
+@anchor_app/core (packages/core)
   └── (no internal dependencies — pure engine)
 ```
 
-Within `@anchor-ai/core`, internal module dependency direction is enforced via ESLint:
+Within `@anchor_app/core`, internal module dependency direction is enforced via ESLint:
 
 ```
 models     ← no outbound imports (pure interfaces)
@@ -406,9 +406,9 @@ Rules-based pre-classification runs before LLM analysis. Matched sections skip t
 
 ### Output formatter architecture
 
-`@anchor-ai/core` owns pure data transformation: `IOutputFormatter` interface with `JsonFormatter` and `SarifFormatter` implementations that convert `AnchorResult` into strings. Zero I/O, zero network dependencies.
+`@anchor_app/core` owns pure data transformation: `IOutputFormatter` interface with `JsonFormatter` and `SarifFormatter` implementations that convert `AnchorResult` into strings. Zero I/O, zero network dependencies.
 
-`@anchor-ai/anchor` (CLI) owns execution: writing files to disk, piping to stdout. The SARIF output writes `anchor-results.sarif` which GitHub Code Scanning consumes. Teams wanting webhook delivery pipe `anchor compare --format json` to their own HTTP client or build a custom `IOutputFormatter` plugin.
+`@anchor_app/anchor` (CLI) owns execution: writing files to disk, piping to stdout. The SARIF output writes `anchor-results.sarif` which GitHub Code Scanning consumes. Teams wanting webhook delivery pipe `anchor compare --format json` to their own HTTP client or build a custom `IOutputFormatter` plugin.
 
 This boundary prevents `core` from requiring networking dependencies or managing environmental secrets, preserving its value as an embeddable engine.
 
@@ -572,7 +572,7 @@ severity:
 | `tsup` | dev (root) | Build/bundle (fast esbuild-based) |
 | `promptfoo` | dev (root) | LLM prompt regression testing |
 
-`sharp` is a peer dependency of `@anchor-ai/core` (optional). Image pipeline features degrade gracefully when sharp is not installed — pHash gating is skipped, and images go directly to vision LLM. **Warning:** this degradation path increases token costs. `anchor doctor` reports whether sharp is installed and `--dry-run` accounts for its absence in cost estimates.
+`sharp` is a peer dependency of `@anchor_app/core` (optional). Image pipeline features degrade gracefully when sharp is not installed — pHash gating is skipped, and images go directly to vision LLM. **Warning:** this degradation path increases token costs. `anchor doctor` reports whether sharp is installed and `--dry-run` accounts for its absence in cost estimates.
 
 `simple-git` requires a globally installed `git` binary. `anchor doctor` checks for git availability. Documented as a prerequisite in CONTRIBUTING.md and README.
 
@@ -582,8 +582,8 @@ severity:
 
 | Package | npm Name | Published | Reason |
 |---|---|---|---|
-| `packages/core` | `@anchor-ai/core` | Yes | Embeddable engine for third-party tools |
-| `packages/cli` | `@anchor-ai/anchor` | Yes | The `anchor` binary users install |
+| `packages/core` | `@anchor_app/core` | Yes | Embeddable engine for third-party tools |
+| `packages/cli` | `@anchor_app/anchor` | Yes | The `anchor` binary users install |
 
 The docs site and playground (if added later) are deployed, not published.
 
@@ -746,7 +746,7 @@ pnpm changeset      # Guided prompt: which package? patch/minor/major?
 git commit -m "fix(core): handle nested heading sections in MarkdownParser"
 ```
 
-No API key. No native dependencies (sharp is optional). `@anchor-ai/core` unit tests run entirely in-process with zero external service calls.
+No API key. No native dependencies (sharp is optional). `@anchor_app/core` unit tests run entirely in-process with zero external service calls.
 
 ### For a contributor improving an LLM prompt
 
@@ -761,7 +761,7 @@ pnpm eval:prompts
 # Confirm: no regression in classification accuracy
 # Confirm: no increase in average token usage
 
-pnpm changeset      # patch bump on @anchor-ai/core
+pnpm changeset      # patch bump on @anchor_app/core
 git commit -m "fix(core): improve BEHAVIORAL vs INFORMATIONAL classification prompt"
 ```
 
@@ -778,7 +778,7 @@ cd packages/core
 # Register:
 #   src/baseline/extractors/index.ts
 pnpm test
-pnpm changeset      # minor bump on @anchor-ai/core
+pnpm changeset      # minor bump on @anchor_app/core
 ```
 
 **Phase 1 constraint:** Extractors must be Node/TypeScript compatible. The `IExtractor` interface uses TypeScript types and expects in-process execution. Non-TS extractors (Python Django, Go, Ruby Rails) are deferred to Phase 3 when the subprocess-based JSON protocol is implemented.
@@ -787,25 +787,25 @@ pnpm changeset      # minor bump on @anchor-ai/core
 
 ```
 # Core engine — high review bar
-/packages/core/                     @anchor-ai/core-team
+/packages/core/                     @anchor_app/core-team
 
 # LLM prompts — cost implications, requires eval run
-/packages/core/src/prompts/         @anchor-ai/core-team
+/packages/core/src/prompts/         @anchor_app/core-team
 
 # Plugin interfaces — API contract, high review bar
-/packages/core/src/plugins/         @anchor-ai/core-team
+/packages/core/src/plugins/         @anchor_app/core-team
 
 # Prompt evaluation fixtures — quality gates
-/evals/                             @anchor-ai/core-team
+/evals/                             @anchor_app/core-team
 
 # CLI and MCP layer
-/packages/cli/                      @anchor-ai/maintainers
+/packages/cli/                      @anchor_app/maintainers
 
 # Templates — community-friendly, lighter review
-/templates/                         @anchor-ai/contributors
+/templates/                         @anchor_app/contributors
 
 # Docs
-/docs/                              @anchor-ai/docs-team
+/docs/                              @anchor_app/docs-team
 ```
 
 ### CONTRIBUTING.md structure
@@ -826,7 +826,7 @@ pnpm changeset      # minor bump on @anchor-ai/core
 
 ## Internal Module Dependency Enforcement
 
-The ESLint configuration enforces the dependency direction graph within `@anchor-ai/core`. This prevents architectural erosion as the codebase grows:
+The ESLint configuration enforces the dependency direction graph within `@anchor_app/core`. This prevents architectural erosion as the codebase grows:
 
 ```javascript
 // .eslintrc.js (simplified)
@@ -878,7 +878,7 @@ The signal to extract a core subsystem to a standalone npm package:
 1. A second project wants to depend on it independently, **and**
 2. It needs an independent release cadence from the main CLI
 
-Most likely extraction order: `@anchor-ai/llm` first (reusable LLM abstraction with rate limiting, caching, multi-provider support), then `@anchor-ai/models` (shared TypeScript interfaces). The diff and baseline engines are implementation details — unlikely to be extracted.
+Most likely extraction order: `@anchor_app/llm` first (reusable LLM abstraction with rate limiting, caching, multi-provider support), then `@anchor_app/models` (shared TypeScript interfaces). The diff and baseline engines are implementation details — unlikely to be extracted.
 
 When extraction happens: delete the path alias from `tsconfig.json`, create a new `packages/llm/` directory with its own `package.json`, and add it to `pnpm-workspace.yaml`. Import statements in consuming code require zero changes.
 
@@ -921,7 +921,7 @@ After scaffolding:
 - [ ] `pnpm test` runs with 0 tests (vitest config wired correctly)
 - [ ] ESLint import cycle rule catches a manually introduced violation
 - [ ] `pnpm changeset` produces a changeset file interactively
-- [ ] `@anchor-ai/core` builds independently with no CLI dependencies in its bundle
+- [ ] `@anchor_app/core` builds independently with no CLI dependencies in its bundle
 - [ ] Path aliases resolve correctly in core's test suite
 - [ ] `evals/promptfooconfig.yaml` parses without errors (eval suite wired)
 

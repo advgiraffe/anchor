@@ -43,7 +43,7 @@ A GitHub Actions workflow that posts Anchor results as PR comments. Requires sol
 
 ### Webhook delivery (community plugin)
 
-Team-specific webhook payloads (Slack block kit, Discord embeds, Teams cards, custom JSON) create an unbounded maintenance surface. Rejected as a built-in. The `IOutputFormatter` plugin interface allows community-contributed formatters. If demand materializes, a `@anchor-ai/webhooks` add-on package is the right vehicle.
+Team-specific webhook payloads (Slack block kit, Discord embeds, Teams cards, custom JSON) create an unbounded maintenance surface. Rejected as a built-in. The `IOutputFormatter` plugin interface allows community-contributed formatters. If demand materializes, a `@anchor_app/webhooks` add-on package is the right vehicle.
 
 ### Multi-language extractor protocol
 
@@ -71,11 +71,11 @@ A monorepo with 15+ dependencies needs automated update PRs. Renovate is preferr
 
 ### Bundle size tracking
 
-`@anchor-ai/core` should stay lean for programmatic consumers. A CI check that reports bundle size changes per PR prevents accidental bloat. `size-limit` or `bundlewatch`. Add in Phase 2 when the package stabilizes.
+`@anchor_app/core` should stay lean for programmatic consumers. A CI check that reports bundle size changes per PR prevents accidental bloat. `size-limit` or `bundlewatch`. Add in Phase 2 when the package stabilizes.
 
 ### API documentation generation
 
-`@anchor-ai/core`'s public API surface should have auto-generated TypeScript docs. `typedoc` with a CI publish step to GitHub Pages. Add when the public API is stable enough to document (Phase 2+).
+`@anchor_app/core`'s public API surface should have auto-generated TypeScript docs. `typedoc` with a CI publish step to GitHub Pages. Add when the public API is stable enough to document (Phase 2+).
 
 ### Prompt eval golden dataset maintenance
 

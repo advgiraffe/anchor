@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import { AnchorError } from "@anchor-ai/core";
+import { AnchorError } from "@anchor_app/core";
 import { registerBaselineCommand } from "./commands/baseline.js";
 import { registerCompareCommand } from "./commands/compare.js";
 import { registerWatchCommand } from "./commands/watch.js";

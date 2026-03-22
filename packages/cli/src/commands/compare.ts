@@ -9,7 +9,7 @@ import {
   ConsoleLogger,
   type Logger,
   type Severity,
-} from "@anchor-ai/core";
+} from "@anchor_app/core";
 
 export interface CompareCommandOptions {
   from: string;
