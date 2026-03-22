@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/advgiraffe/anchor/compare/v1.3.0...v1.4.0) (2026-03-22)
+
+
+### Features
+
+* **cli,core:** implement baseline and init scaffolding flows ([9129fd1](https://github.com/advgiraffe/anchor/commit/9129fd1914e9b5c6fa37638fe38697b3745c3c36))
+
 # [1.3.0](https://github.com/advgiraffe/anchor/compare/v1.2.0...v1.3.0) (2026-03-22)
 
 
