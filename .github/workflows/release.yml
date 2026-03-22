@@ -1,26 +1,46 @@
 name: Release
+
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   release:
+    name: Publish Release
     runs-on: ubuntu-latest
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    permissions:
+      contents: write       # tag and push release commit
+      issues: write         # comment on issues resolved by release
+      pull-requests: write  # comment on PRs resolved by release
+      id-token: write       # NPM provenance
+
     steps:
-      - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v5
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          node-version: 22
+          fetch-depth: 0    # semantic-release needs full history to calculate version
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
           cache: pnpm
-          registry-url: https://registry.npmjs.org
-      - run: pnpm install --frozen-lockfile
-      - name: Publish packages
-        if: ${{ env.NODE_AUTH_TOKEN != '' }}
-        run: pnpm release
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Release
+        if: ${{ secrets.NPM_TOKEN != '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: pnpm exec semantic-release
+
       - name: Skip publish (missing NPM_TOKEN)
-        if: ${{ env.NODE_AUTH_TOKEN == '' }}
-        run: echo "::warning::NPM_TOKEN secret is not configured. Skipping npm publish."
+        if: ${{ secrets.NPM_TOKEN == '' }}
+        run: echo "::warning::NPM_TOKEN secret is not configured. Skipping release."
 
