@@ -159,8 +159,8 @@ export async function compareAction(
       differ: dependencies.differ,
     });
 
-  const corpusChanges = await corpusDiffer.diff(opts.from, opts.to, opts.corpus!);
-  logger.info(`Found ${corpusChanges.length} changed files in corpus`);
+  const { fileChanges: corpusChanges, imageChanges } = await corpusDiffer.diff(opts.from, opts.to, opts.corpus!);
+  logger.info(`Found ${corpusChanges.length} changed files, ${imageChanges.length} changed images in corpus`);
 
   const result: AnchorResult = {
     metadata: {

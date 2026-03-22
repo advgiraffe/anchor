@@ -20,6 +20,22 @@ export {
 	type CorpusFileChange,
 	type CorpusTreeDifferDependencies,
 } from "./diff/CorpusTreeDiffer.js";
+export { type CorpusDiffResult } from "./diff/CorpusTreeDiffer.js";
+
+// Image diff pipeline
+export { ImageChangeDetector } from "./diff/images/ImageChangeDetector.js";
+export { classifyImageRole } from "./diff/images/ImageRoleClassifier.js";
+export {
+	computeImageHash,
+	computeSha256,
+	hammingDistance,
+	type PHashResult,
+} from "./diff/images/PerceptualHasher.js";
+export {
+	CrossAssetCorrelator,
+	type CorrelatedDelta,
+	type CorrelationType,
+} from "./diff/CrossAssetCorrelator.js";
 export { GlobMatcher, TargetRouter, type RouteTarget, type TargetRoute } from "./routing/index.js";
 export { InstructionGenerator, type TargetInstruction } from "./llm/index.js";
 export { AnthropicClient, type LlmResponse, type LlmMessage } from "./llm/providers/AnthropicClient.js";

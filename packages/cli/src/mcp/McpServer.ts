@@ -249,7 +249,7 @@ export class AnchorMcpServer {
 	}): Promise<string> {
 		try {
 			// Perform corpus comparison
-			const corpusChanges = await this.corpusDiffer.diff(
+			const { fileChanges } = await this.corpusDiffer.diff(
 				args.fromRef,
 				args.toRef,
 				args.folderPath
@@ -257,7 +257,7 @@ export class AnchorMcpServer {
 
 			// Classify sections and build FileDelta
 			const fileDeltas: FileDelta[] = [];
-			for (const fileChange of corpusChanges) {
+			for (const fileChange of fileChanges) {
 				const fileDelta = await this.classifyFileChanges(fileChange);
 				fileDeltas.push(fileDelta);
 			}

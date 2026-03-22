@@ -29,3 +29,16 @@ export interface AnchorResult {
 	metadata: CorpusMetadata;
 	fileDeltas: FileDelta[];
 }
+
+export type ImageRole = "wireframe" | "screenshot" | "diagram" | "icon_or_asset" | "unknown";
+
+export interface ImageDelta {
+	path: string;
+	changeType: Extract<ChangeType, "ADDED" | "REMOVED" | "MODIFIED">;
+	role: ImageRole;
+	severity: Severity;
+	/** Perceptual hash Hamming distance (0–64). Undefined when sharp is unavailable. */
+	pHashDistance?: number;
+	/** True when the SHA-256 of both blobs matched (byte-identical, no visual change). */
+	shaMatch: boolean;
+}
