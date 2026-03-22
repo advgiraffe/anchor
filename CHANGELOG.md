@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/advgiraffe/anchor/compare/v1.1.0...v1.1.1) (2026-03-22)
+
+
+### Bug Fixes
+
+* **ci:** configure npm registry auth for release publish ([3b11e24](https://github.com/advgiraffe/anchor/commit/3b11e24a76f0987e6d8f247f7e8a7d8188dd450e))
+
 # [1.1.0](https://github.com/advgiraffe/anchor/compare/v1.0.0...v1.1.0) (2026-03-22)
 
 
