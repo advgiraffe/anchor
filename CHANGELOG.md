@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/advgiraffe/anchor/compare/v1.2.0...v1.3.0) (2026-03-22)
+
+
+### Features
+
+* **cli,core:** add config-driven targets and validation ([d6a78a7](https://github.com/advgiraffe/anchor/commit/d6a78a740c2ac1611ca6796d4aec119f3d586962))
+
 # [1.2.0](https://github.com/advgiraffe/anchor/compare/v1.1.1...v1.2.0) (2026-03-22)
 
 
