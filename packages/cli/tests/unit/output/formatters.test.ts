@@ -49,8 +49,9 @@ describe("output formatters", () => {
     const output = formatResult(sampleResult, "instructions");
 
     expect(output).toContain("Anchor change instructions");
-    expect(output).toContain("Action items:");
-    expect(output).toContain("BEHAVIORAL MODIFIED in \"Authentication\"");
+    expect(output).toContain("Target: default");
+    expect(output).toContain("Required actions:");
+    expect(output).toContain("BEHAVIORAL MODIFIED section \"Authentication\"");
   });
 
   it("formats sarif output", () => {

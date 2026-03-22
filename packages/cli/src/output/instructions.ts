@@ -1,4 +1,4 @@
-import type { AnchorResult } from "@anchor_app/core";
+import { InstructionGenerator, TargetRouter, type AnchorResult } from "@anchor_app/core";
 
 export function formatInstructions(result: AnchorResult): string {
 	const lines: string[] = [];
@@ -16,19 +16,25 @@ export function formatInstructions(result: AnchorResult): string {
 		return lines.join("\n");
 	}
 
-	lines.push("Action items:");
+	const router = new TargetRouter();
+	const routes = router.route(result, [
+		{
+			id: "default",
+			description: "General implementation target",
+			include: ["**/*"],
+		},
+	]);
 
-	for (const fileDelta of result.fileDeltas) {
-		lines.push(`- Review ${fileDelta.path} (${fileDelta.changeType}, max severity ${fileDelta.maxSeverity})`);
+	const generator = new InstructionGenerator();
+	const generated = generator.generate(routes);
 
-		for (const sectionDelta of fileDelta.sectionDeltas) {
-			const summary = sectionDelta.summary ? `: ${sectionDelta.summary}` : "";
-			lines.push(
-				`  - ${sectionDelta.severity} ${sectionDelta.changeType} in \"${sectionDelta.title}\"${summary}`,
-			);
-		}
+	if (generated.length === 0) {
+		lines.push("No action needed: no requirement deltas detected.");
+		lines.push("");
+		return lines.join("\n");
 	}
 
+	lines.push(generated[0].instruction.trimEnd());
 	lines.push("");
 	return lines.join("\n");
 }

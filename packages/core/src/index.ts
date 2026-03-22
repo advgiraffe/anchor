@@ -17,5 +17,7 @@ export {
 	type CorpusFileChange,
 	type CorpusTreeDifferDependencies,
 } from "./diff/CorpusTreeDiffer.js";
+export { GlobMatcher, TargetRouter, type RouteTarget, type TargetRoute } from "./routing/index.js";
+export { InstructionGenerator, type TargetInstruction } from "./llm/index.js";
 export { AnthropicClient, type LlmResponse, type LlmMessage } from "./llm/providers/AnthropicClient.js";
 export { SectionClassifier, type ClassificationResult } from "./llm/SectionClassifier.js";

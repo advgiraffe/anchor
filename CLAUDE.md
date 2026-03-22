@@ -37,6 +37,19 @@ pnpm --filter @anchor_app/core build
 
 The CLI `test` and `test:integration` scripts already do this automatically. If you add exports to core and run core tests directly (`pnpm --filter @anchor_app/core test`), those tests import from source via Vitest and work without a build. But cross-package consumers always need the build step first.
 
+### Git sync before push
+
+This repo uses `@semantic-release/git` in CI, which can create release commits on `main` after GitHub workflows run. That means remote `main` can advance even if your local branch was up-to-date when you started.
+
+Before pushing local commits, always sync first:
+
+```bash
+git fetch origin
+git rebase origin/main
+```
+
+Then push. This avoids non-fast-forward push failures and keeps local commits cleanly on top of release-generated commits.
+
 ## Architecture
 
 ```
