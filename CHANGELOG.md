@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/advgiraffe/anchor/compare/v1.5.0...v1.6.0) (2026-03-22)
+
+
+### Features
+
+* **core:** implement image diff pipeline ([0eb9828](https://github.com/advgiraffe/anchor/commit/0eb98289224145500587964719b5ba424d2c6629))
+
 # [1.5.0](https://github.com/advgiraffe/anchor/compare/v1.4.0...v1.5.0) (2026-03-22)
 
 
