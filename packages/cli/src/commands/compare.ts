@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { writeFileSync } from "node:fs";
 import {
   GitExtractor,
   GitTreeDiffer,
@@ -13,12 +14,15 @@ import {
   type Logger,
   type Severity,
 } from "@anchor_app/core";
+import { resolveFormatter, type OutputFormat } from "../output/FormatterRegistry.js";
 
 export interface CompareCommandOptions {
   from: string;
   to: string;
   file?: string;
   corpus?: string;
+  format?: OutputFormat;
+  output?: string;
 }
 
 export interface CompareClassifier {
@@ -50,6 +54,8 @@ export function registerCompareCommand(program: Command): void {
     .option("--to <ref>", "End git ref", "HEAD")
     .option("--file <path>", "Single file path to compare")
     .option("--corpus <path>", "Corpus path to compare")
+    .option("--format <format>", "Output format: json|markdown|sarif|instructions", "json")
+    .option("--output <path>", "Write output to file instead of stdout")
     .action(async (opts: CompareCommandOptions) => {
       try {
         await compareAction(opts);
@@ -127,11 +133,7 @@ export async function compareAction(
       fileDeltas: [fileDelta],
     };
 
-    if (dependencies.emitResult) {
-      dependencies.emitResult(result);
-    } else {
-      console.log(JSON.stringify(result, null, 2));
-    }
+    emitCompareResult(result, opts, dependencies);
 
     return result;
   }
@@ -169,13 +171,30 @@ export async function compareAction(
 
   result.metadata.totalFilesChanged = result.fileDeltas.length;
 
-  if (dependencies.emitResult) {
-    dependencies.emitResult(result);
-  } else {
-    console.log(JSON.stringify(result, null, 2));
-  }
+  emitCompareResult(result, opts, dependencies);
 
   return result;
+}
+
+function emitCompareResult(
+  result: AnchorResult,
+  opts: Pick<CompareCommandOptions, "format" | "output">,
+  dependencies: CompareDependencies,
+): void {
+  if (dependencies.emitResult) {
+    dependencies.emitResult(result);
+    return;
+  }
+
+  const formatter = resolveFormatter(opts.format ?? "json");
+  const rendered = formatter(result);
+
+  if (opts.output) {
+    writeFileSync(opts.output, rendered, "utf8");
+    return;
+  }
+
+  process.stdout.write(rendered);
 }
 
 async function classifyFileChanges(

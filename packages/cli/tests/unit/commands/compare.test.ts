@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { compareAction } from "../../../src/commands/compare.js";
 import { createTempGitRepo } from "../../../../../tests/helpers/tempGitRepo.js";
 import { SectionClassifier, type AnchorResult } from "@anchor_app/core";
@@ -132,6 +135,61 @@ describe("compareAction", () => {
       expect(result.fileDeltas[0].sectionDeltas[0].severity).toBe("BREAKING");
     } finally {
       repo.cleanup();
+    }
+  });
+
+  it("writes formatted compare output to a file", async () => {
+    const repo = createTempGitRepo();
+    const outDir = mkdtempSync(join(tmpdir(), "anchor-out-"));
+    const outputPath = join(outDir, "report.md");
+
+    try {
+      const firstRef = repo.commitFile(
+        "docs/spec.md",
+        ["# API", "", "## Authentication", "Use API key"].join("\n"),
+        "initial spec",
+      );
+
+      const secondRef = repo.commitFile(
+        "docs/spec.md",
+        ["# API", "", "## Authentication", "Use OAuth token"].join("\n"),
+        "updated spec",
+      );
+
+      await compareAction(
+        {
+          from: firstRef,
+          to: secondRef,
+          file: "docs/spec.md",
+          format: "markdown",
+          output: outputPath,
+        },
+        {
+          repoPath: repo.dir,
+          logger: {
+            debug() {},
+            info() {},
+            warn() {},
+            error() {},
+          },
+          classifier: {
+            async classifyChange(title) {
+              return {
+                severity: "BEHAVIORAL",
+                summary: `${title} changed`,
+                reasoning: "deterministic test classifier",
+              };
+            },
+          },
+        },
+      );
+
+      const output = readFileSync(outputPath, "utf8");
+      expect(output).toContain("# Anchor Compare Report");
+      expect(output).toContain("## docs/spec.md");
+    } finally {
+      repo.cleanup();
+      rmSync(outDir, { recursive: true, force: true });
     }
   });
 });
