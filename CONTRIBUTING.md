@@ -10,6 +10,19 @@ pnpm build
 pnpm typecheck
 ```
 
+Run tests:
+
+```bash
+# All tests (builds core first automatically)
+pnpm --filter @anchor_app/anchor test
+
+# Integration tests only
+pnpm --filter @anchor_app/anchor test:integration
+
+# Core package tests
+pnpm --filter @anchor_app/core test
+```
+
 Run the CLI directly from the built CommonJS binary:
 
 ```bash
@@ -18,6 +31,16 @@ node packages/cli/dist/index.cjs doctor
 ```
 
 The CLI package points its `bin` entry at the CommonJS build intentionally. Some current dependencies still rely on CommonJS runtime behavior, so the CJS entrypoint is the stable local execution path.
+
+### Stale package exports
+
+`@anchor_app/core` resolves from its compiled `dist/`, not source. When you add a new export to `packages/core/src/`, the CLI package won't see it until core is rebuilt:
+
+```bash
+pnpm --filter @anchor_app/core build
+```
+
+The CLI `test` and `test:integration` scripts do this automatically. Core tests import from source via Vitest and don't need the build step, but all cross-package consumers do.
 
 ## Anthropic credentials
 

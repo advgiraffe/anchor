@@ -9,7 +9,13 @@ export * from "./llm/LlmClient.js";
 
 // Phase 1A: Single-file markdown diff
 export { GitExtractor } from "./git/GitExtractor.js";
+export { GitTreeDiffer, type GitTreeChange } from "./git/GitTreeDiffer.js";
 export { MarkdownParser, type ParsedSection } from "./diff/text/parsers/MarkdownParser.js";
 export { SectionDiffer, type SectionChange } from "./diff/text/SectionDiffer.js";
+export {
+	CorpusTreeDiffer,
+	type CorpusFileChange,
+	type CorpusTreeDifferDependencies,
+} from "./diff/CorpusTreeDiffer.js";
 export { AnthropicClient, type LlmResponse, type LlmMessage } from "./llm/providers/AnthropicClient.js";
 export { SectionClassifier, type ClassificationResult } from "./llm/SectionClassifier.js";
