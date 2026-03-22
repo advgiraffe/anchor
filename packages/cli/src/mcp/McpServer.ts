@@ -1,5 +1,6 @@
 import { McpServer as MCPServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { z } from "zod";
 
 import type {
@@ -22,9 +23,19 @@ import {
 	type Logger,
 } from "@anchor_app/core";
 
+export interface McpClassifier {
+	classifyChange(
+		title: string,
+		oldContent: string | undefined,
+		newContent: string | undefined,
+		changeType: "ADDED" | "REMOVED" | "MODIFIED",
+	): Promise<{ severity: Severity; summary: string; reasoning: string }>;
+}
+
 export interface McpServerConfig {
 	cwd?: string;
 	verbose?: boolean;
+	classifier?: McpClassifier;
 }
 
 /**
@@ -47,7 +58,7 @@ export class AnchorMcpServer {
 	private configLoader: ConfigLoader;
 	private parser: MarkdownParser;
 	private differ: SectionDiffer;
-	private classifier: SectionClassifier;
+	private classifier: McpClassifier;
 
 	constructor(config: McpServerConfig = {}) {
 		this.cwd = config.cwd || process.cwd();
@@ -67,7 +78,7 @@ export class AnchorMcpServer {
 			differ: this.differ,
 		});
 		this.configLoader = new ConfigLoader();
-		this.classifier = new SectionClassifier();
+		this.classifier = config.classifier ?? new SectionClassifier();
 
 		// Initialize MCP server
 		this.server = new MCPServer({
@@ -366,7 +377,7 @@ export class AnchorMcpServer {
 		try {
 			let config: AnchorConfig;
 			try {
-				config = await this.configLoader.load(args.configPath);
+				config = this.configLoader.load(args.configPath, this.cwd);
 			} catch {
 				// Return empty if config not found
 				config = { version: 1, targets: [] };
@@ -506,6 +517,10 @@ export class AnchorMcpServer {
 
 	async start(): Promise<void> {
 		const transport = new StdioServerTransport();
+		await this.connect(transport);
+	}
+
+	async connect(transport: Transport): Promise<void> {
 		await this.server.connect(transport);
 		if (this.verbose) {
 			this.logger.info("🚀 Anchor MCP server started via stdio");

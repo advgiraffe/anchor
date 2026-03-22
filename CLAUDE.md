@@ -78,11 +78,12 @@ Completed:
 - [x] Integration tests for single-file compare
 - [x] Corpus-level compare (`--corpus`) with file add/remove/modify/rename
 - [x] Integration tests for corpus compare
+- [x] Output formatters: JSON, Markdown, SARIF, instructions (`packages/cli/src/output/`)
+- [x] Target routing + instruction generation (`packages/core/src/routing/`, `packages/core/src/llm/InstructionGenerator.ts`)
+- [x] Baseline command end-to-end + `init`, `validate`, `targets` commands
+- [x] MCP command + tools (`packages/cli/src/mcp/`) — 4 tools: `anchor_compare`, `anchor_compare_corpus`, `anchor_targets`, `anchor_baseline_status`
+- [x] Integration tests for MCP tools (`packages/cli/tests/integration/mcp-tools.test.ts`)
 
 Next up (in order):
-- [ ] Output formatters: JSON, Markdown, SARIF (`packages/cli/src/output/`)
-- [ ] Target routing + instruction generation (`packages/core/src/routing/`, `packages/core/src/llm/InstructionGenerator.ts`)
-- [ ] Baseline command end-to-end (`packages/cli/src/commands/baseline.ts`)
-- [ ] MCP command + tools (`packages/cli/src/mcp/`)
 - [ ] Image diff pipeline (`packages/core/src/diff/images/`)
 - [ ] Extractor implementations: routes, schemas, screens (`packages/core/src/baseline/extractors/`)
