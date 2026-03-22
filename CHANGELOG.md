@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/advgiraffe/anchor/compare/v1.1.1...v1.2.0) (2026-03-22)
+
+
+### Features
+
+* **core:** add target routing and instruction generation ([e52f0f0](https://github.com/advgiraffe/anchor/commit/e52f0f05f323b3f5275466813673676d36113a95))
+
 ## [1.1.1](https://github.com/advgiraffe/anchor/compare/v1.1.0...v1.1.1) (2026-03-22)
 
 
