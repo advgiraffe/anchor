@@ -8,6 +8,7 @@ export * from "./logger/Logger.js";
 export * from "./llm/LlmClient.js";
 export * from "./config/AnchorConfig.js";
 export * from "./config/ConfigLoader.js";
+export * from "./baseline/index.js";
 
 // Phase 1A: Single-file markdown diff
 export { GitExtractor } from "./git/GitExtractor.js";
