@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/advgiraffe/anchor/compare/v1.4.0...v1.5.0) (2026-03-22)
+
+
+### Features
+
+* **cli:** implement MCP server with 4 tools (compare_corpus, compare, targets, baseline_status) ([e88c17c](https://github.com/advgiraffe/anchor/commit/e88c17cba2968cb7d2e9ec834be37601f47ed7cf))
+
 # [1.4.0](https://github.com/advgiraffe/anchor/compare/v1.3.0...v1.4.0) (2026-03-22)
 
 
