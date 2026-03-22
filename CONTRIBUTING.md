@@ -111,7 +111,7 @@ everything else.
 
 ## Release process
 
-Releases are fully automated via GitHub Actions. When a commit lands on `main`:
+Releases are fully automated via GitHub Actions (when `NPM_TOKEN` is configured). When a commit lands on `main`:
 
 1. `semantic-release` analyzes commit messages since the last release tag
 2. If any releasable commits exist (`fix:`, `feat:`, breaking), it bumps the
@@ -119,6 +119,8 @@ Releases are fully automated via GitHub Actions. When a commit lands on `main`:
 3. If only non-releasable commits exist (`chore:`, `docs:`, etc.), nothing is published
 
 You do not need to do anything. The only lever you control is the commit prefix.
+
+If `NPM_TOKEN` is missing in repository secrets, the release workflow will skip publishing and log a warning.
 
 ### Branching
 

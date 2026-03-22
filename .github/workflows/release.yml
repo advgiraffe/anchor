@@ -9,6 +9,8 @@ jobs:
   release:
     name: Publish Release
     runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     permissions:
       contents: write       # tag and push release commit
       issues: write         # comment on issues resolved by release
@@ -33,7 +35,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Release
-        if: ${{ secrets.NPM_TOKEN != '' }}
+        if: ${{ env.NPM_TOKEN != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -41,6 +43,6 @@ jobs:
         run: pnpm exec semantic-release
 
       - name: Skip publish (missing NPM_TOKEN)
-        if: ${{ secrets.NPM_TOKEN == '' }}
+        if: ${{ env.NPM_TOKEN == '' }}
         run: echo "::warning::NPM_TOKEN secret is not configured. Skipping release."
 
