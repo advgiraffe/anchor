@@ -1,6 +1,9 @@
 import { readdirSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import type { AnchorTargetConfig } from "../config/AnchorConfig.js";
+import { RouteExtractor } from "./extractors/RouteExtractor.js";
+import { SchemaExtractor } from "./extractors/SchemaExtractor.js";
+import { ScreenExtractor } from "./extractors/ScreenExtractor.js";
 
 export interface BaselineSection {
 	path: string;
@@ -13,9 +16,26 @@ export interface BaselineGenerationInput {
 }
 
 export class SectionGenerator {
+	private readonly routeExtractor: RouteExtractor;
+	private readonly schemaExtractor: SchemaExtractor;
+	private readonly screenExtractor: ScreenExtractor;
+
+	constructor(deps: {
+		routeExtractor?: RouteExtractor;
+		schemaExtractor?: SchemaExtractor;
+		screenExtractor?: ScreenExtractor;
+	} = {}) {
+		this.routeExtractor = deps.routeExtractor ?? new RouteExtractor();
+		this.schemaExtractor = deps.schemaExtractor ?? new SchemaExtractor();
+		this.screenExtractor = deps.screenExtractor ?? new ScreenExtractor();
+	}
+
 	generate(input: BaselineGenerationInput): BaselineSection[] {
 		const sourceRoot = resolve(input.sourcePath);
 		const fileList = listFiles(sourceRoot).slice(0, 200);
+		const routes = this.routeExtractor.extract(sourceRoot);
+		const schemas = this.schemaExtractor.extract(sourceRoot);
+		const screens = this.screenExtractor.extract(sourceRoot);
 
 		const overviewLines: string[] = [];
 		overviewLines.push("# Baseline Overview");
@@ -25,6 +45,9 @@ export class SectionGenerator {
 		overviewLines.push(`- Source path: ${sourceRoot}`);
 		overviewLines.push(`- Generated at: ${new Date().toISOString()}`);
 		overviewLines.push(`- Files sampled: ${fileList.length}`);
+		overviewLines.push(`- Routes detected: ${routes.length}`);
+		overviewLines.push(`- Data models detected: ${schemas.length}`);
+		overviewLines.push(`- Screens detected: ${screens.length}`);
 		overviewLines.push("");
 		overviewLines.push("## Detected targets");
 		overviewLines.push("");
@@ -64,10 +87,58 @@ export class SectionGenerator {
 			targetsLines.push("");
 		}
 
+		const endpointsLines: string[] = [];
+		endpointsLines.push("# API Endpoints");
+		endpointsLines.push("");
+		if (routes.length === 0) {
+			endpointsLines.push("No routes detected.");
+		} else {
+			for (const route of routes) {
+				endpointsLines.push(`## ${route.method} ${route.path}`);
+				endpointsLines.push("");
+				endpointsLines.push(`- Framework: ${route.framework}`);
+				endpointsLines.push(`- Source: ${route.sourcePath}`);
+				endpointsLines.push("");
+			}
+		}
+
+		const modelLines: string[] = [];
+		modelLines.push("# Data Models");
+		modelLines.push("");
+		if (schemas.length === 0) {
+			modelLines.push("No schemas detected.");
+		} else {
+			for (const model of schemas) {
+				modelLines.push(`## ${model.name}`);
+				modelLines.push("");
+				modelLines.push(`- Kind: ${model.kind}`);
+				modelLines.push(`- Source: ${model.sourcePath}`);
+				modelLines.push("");
+			}
+		}
+
+		const screenSections: BaselineSection[] = [];
+		for (const screen of screens.slice(0, 100)) {
+			const slug = screen.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "screen";
+			const lines: string[] = [];
+			lines.push(`# ${screen.name}`);
+			lines.push("");
+			lines.push(`- Kind: ${screen.kind}`);
+			if (screen.routeHint) {
+				lines.push(`- Route hint: ${screen.routeHint}`);
+			}
+			lines.push(`- Source: ${screen.sourcePath}`);
+			lines.push("");
+			screenSections.push({ path: `screens/${slug}.md`, content: `${lines.join("\n")}\n` });
+		}
+
 		return [
 			{ path: "overview.md", content: `${overviewLines.join("\n")}\n` },
+			{ path: "api/endpoints.md", content: `${endpointsLines.join("\n")}\n` },
+			{ path: "data/models.md", content: `${modelLines.join("\n")}\n` },
 			{ path: "inventory/files.md", content: `${inventoryLines.join("\n")}\n` },
 			{ path: "targets.md", content: `${targetsLines.join("\n")}\n` },
+			...screenSections,
 		];
 	}
 }

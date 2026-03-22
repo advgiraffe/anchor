@@ -85,5 +85,5 @@ Completed:
 - [x] Integration tests for MCP tools (`packages/cli/tests/integration/mcp-tools.test.ts`)
 
 Next up (in order):
-- [ ] Image diff pipeline (`packages/core/src/diff/images/`)
-- [ ] Extractor implementations: routes, schemas, screens (`packages/core/src/baseline/extractors/`)
+- [x] Image diff pipeline (`packages/core/src/diff/images/`)
+- [x] Extractor implementations: routes, schemas, screens (`packages/core/src/baseline/extractors/`)
