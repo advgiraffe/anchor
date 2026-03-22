@@ -192,4 +192,79 @@ describe("compareAction", () => {
       rmSync(outDir, { recursive: true, force: true });
     }
   });
+
+  it("writes target-aware instructions output using config targets", async () => {
+    const repo = createTempGitRepo();
+    const outDir = mkdtempSync(join(tmpdir(), "anchor-out-"));
+    const outputPath = join(outDir, "instructions.md");
+
+    try {
+      const firstRef = repo.commitFile(
+        "docs/spec.md",
+        ["# API", "", "## Authentication", "Use API key"].join("\n"),
+        "initial spec",
+      );
+
+      const secondRef = repo.commitFile(
+        "docs/spec.md",
+        ["# API", "", "## Authentication", "Use OAuth token"].join("\n"),
+        "updated spec",
+      );
+
+      await compareAction(
+        {
+          from: firstRef,
+          to: secondRef,
+          file: "docs/spec.md",
+          format: "instructions",
+          config: ".anchor.yaml",
+          targets: "backend",
+          output: outputPath,
+        },
+        {
+          repoPath: repo.dir,
+          logger: {
+            debug() {},
+            info() {},
+            warn() {},
+            error() {},
+          },
+          classifier: {
+            async classifyChange(title) {
+              return {
+                severity: "BEHAVIORAL",
+                summary: `${title} changed`,
+                reasoning: "deterministic test classifier",
+              };
+            },
+          },
+          configLoader: {
+            load() {
+              return {
+                targets: [
+                  {
+                    name: "backend",
+                    description: "Backend engineering",
+                    fileGlobs: ["docs/**"],
+                  },
+                  {
+                    name: "mobile",
+                    fileGlobs: ["mobile/**"],
+                  },
+                ],
+              };
+            },
+          } as never,
+        },
+      );
+
+      const output = readFileSync(outputPath, "utf8");
+      expect(output).toContain("Anchor change instructions");
+      expect(output).toContain("Target: backend");
+      expect(output).not.toContain("Target: mobile");
+    } finally {
+      repo.cleanup();
+      rmSync(outDir, { recursive: true, force: true });
+    }
+  });
 });

@@ -1,12 +1,16 @@
 import type { Command } from "commander";
 import { writeFileSync } from "node:fs";
 import {
+  ConfigLoader,
   GitExtractor,
   GitTreeDiffer,
   MarkdownParser,
   SectionDiffer,
   SectionClassifier,
   CorpusTreeDiffer,
+  TargetRouter,
+  InstructionGenerator,
+  type AnchorTargetConfig,
   type CorpusFileChange,
   type FileDelta,
   type AnchorResult,
@@ -22,6 +26,8 @@ export interface CompareCommandOptions {
   file?: string;
   corpus?: string;
   format?: OutputFormat;
+  config?: string;
+  targets?: string;
   output?: string;
 }
 
@@ -38,6 +44,7 @@ export interface CompareDependencies {
   gitExtractor?: GitExtractor;
   gitTreeDiffer?: GitTreeDiffer;
   corpusDiffer?: CorpusTreeDiffer;
+  configLoader?: ConfigLoader;
   parser?: MarkdownParser;
   differ?: SectionDiffer;
   classifier?: CompareClassifier;
@@ -55,6 +62,8 @@ export function registerCompareCommand(program: Command): void {
     .option("--file <path>", "Single file path to compare")
     .option("--corpus <path>", "Corpus path to compare")
     .option("--format <format>", "Output format: json|markdown|sarif|instructions", "json")
+    .option("--config <path>", "Path to config file for target-aware instructions", ".anchor.yaml")
+    .option("--targets <names>", "Comma-separated target names (instructions format only)")
     .option("--output <path>", "Write output to file instead of stdout")
     .action(async (opts: CompareCommandOptions) => {
       try {
@@ -133,7 +142,7 @@ export async function compareAction(
       fileDeltas: [fileDelta],
     };
 
-    emitCompareResult(result, opts, dependencies);
+    emitCompareResult(result, opts, dependencies, logger);
 
     return result;
   }
@@ -171,23 +180,30 @@ export async function compareAction(
 
   result.metadata.totalFilesChanged = result.fileDeltas.length;
 
-  emitCompareResult(result, opts, dependencies);
+  emitCompareResult(result, opts, dependencies, logger);
 
   return result;
 }
 
 function emitCompareResult(
   result: AnchorResult,
-  opts: Pick<CompareCommandOptions, "format" | "output">,
+  opts: Pick<CompareCommandOptions, "format" | "output" | "config" | "targets">,
   dependencies: CompareDependencies,
+  logger: Logger,
 ): void {
   if (dependencies.emitResult) {
     dependencies.emitResult(result);
     return;
   }
 
-  const formatter = resolveFormatter(opts.format ?? "json");
-  const rendered = formatter(result);
+  let rendered: string;
+
+  if ((opts.format ?? "json") === "instructions") {
+    rendered = renderTargetInstructions(result, opts, dependencies, logger);
+  } else {
+    const formatter = resolveFormatter(opts.format ?? "json");
+    rendered = formatter(result);
+  }
 
   if (opts.output) {
     writeFileSync(opts.output, rendered, "utf8");
@@ -195,6 +211,84 @@ function emitCompareResult(
   }
 
   process.stdout.write(rendered);
+}
+
+function renderTargetInstructions(
+  result: AnchorResult,
+  opts: Pick<CompareCommandOptions, "config" | "targets">,
+  dependencies: CompareDependencies,
+  logger: Logger,
+): string {
+  try {
+    const loader = dependencies.configLoader ?? new ConfigLoader();
+    const config = loader.load(opts.config ?? ".anchor.yaml", dependencies.repoPath ?? process.cwd());
+
+    let selectedTargets = config.targets;
+    const requestedTargets = parseRequestedTargets(opts.targets);
+
+    if (requestedTargets.length > 0) {
+      const requestedSet = new Set(requestedTargets);
+      selectedTargets = config.targets.filter((target) => requestedSet.has(target.name));
+      if (selectedTargets.length === 0) {
+        throw new Error(`No configured targets matched requested list: ${requestedTargets.join(", ")}`);
+      }
+    }
+
+    const router = new TargetRouter();
+    const routes = router.route(result, selectedTargets.map(mapToRouteTarget));
+    const generator = new InstructionGenerator();
+    const instructions = generator.generate(routes);
+
+    if (instructions.length === 0) {
+      return "Anchor change instructions\n\nNo action needed: no target-mapped deltas detected.\n";
+    }
+
+    const lines: string[] = [];
+    lines.push("Anchor change instructions");
+    lines.push("");
+    lines.push(`Scope: ${result.metadata.path}`);
+    lines.push(`Refs: ${result.metadata.fromRef} -> ${result.metadata.toRef}`);
+    lines.push(`Files changed: ${result.metadata.totalFilesChanged}`);
+    lines.push("");
+
+    for (const instruction of instructions) {
+      lines.push(instruction.instruction.trimEnd());
+      lines.push("");
+    }
+
+    return `${lines.join("\n")}\n`;
+  } catch (error) {
+    logger.warn(
+      `Falling back to default instructions formatter: ${error instanceof Error ? error.message : String(error)}`,
+    );
+    const formatter = resolveFormatter("instructions");
+    return formatter(result);
+  }
+}
+
+function parseRequestedTargets(raw: string | undefined): string[] {
+  if (!raw) {
+    return [];
+  }
+
+  return raw
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+}
+
+function mapToRouteTarget(target: AnchorTargetConfig): {
+  id: string;
+  description?: string;
+  include: string[];
+  exclude?: string[];
+} {
+  return {
+    id: target.name,
+    description: target.description,
+    include: target.fileGlobs,
+    exclude: target.excludeGlobs,
+  };
 }
 
 async function classifyFileChanges(
