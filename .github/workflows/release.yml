@@ -39,6 +39,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify package access is public
+        run: node scripts/verify-public-packages.mjs
+
       - name: Release
         if: ${{ env.NPM_TOKEN != '' }}
         env:

@@ -118,6 +118,16 @@ Releases are fully automated via GitHub Actions (when `NPM_TOKEN` is configured)
    version, updates `CHANGELOG.md`, publishes to NPM, and creates a GitHub Release
 3. If only non-releasable commits exist (`chore:`, `docs:`, etc.), nothing is published
 
+### Scoped package visibility
+
+Anchor publishes scoped packages (`@anchor_app/core`, `@anchor_app/anchor`) and they must remain public.
+
+- Each package manifest must include `publishConfig.access: public`
+- Release publishing uses `--access public`
+- CI and release workflows enforce this via `node scripts/verify-public-packages.mjs`
+
+If this check fails, fix the package manifest(s) before merging.
+
 You do not need to do anything. The only lever you control is the commit prefix.
 
 If `NPM_TOKEN` is missing in repository secrets, the release workflow will skip publishing and log a warning.

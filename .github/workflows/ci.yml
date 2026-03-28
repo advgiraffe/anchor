@@ -12,6 +12,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: node scripts/verify-public-packages.mjs
       - run: pnpm turbo run build test lint typecheck
       - run: pnpm turbo run test:integration
 
