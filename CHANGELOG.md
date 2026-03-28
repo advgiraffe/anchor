@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/advgiraffe/anchor/compare/v1.6.0...v1.7.0) (2026-03-22)
+
+
+### Features
+
+* **baseline:** implement static extractors for routes schemas and screens ([833fe85](https://github.com/advgiraffe/anchor/commit/833fe8512e7c74315a347065720d5d9df32dad93))
+
 # [1.6.0](https://github.com/advgiraffe/anchor/compare/v1.5.0...v1.6.0) (2026-03-22)
 
 
