@@ -1,0 +1,29 @@
+#!/bin/sh
+# Auto-sync with remote before pushing to avoid non-fast-forward failures.
+# semantic-release creates version bump commits on main after CI runs,
+# so remote main can advance ahead of local even when you're up-to-date.
+
+REMOTE=$1
+BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null)
+
+if [ "$REMOTE" = "origin" ] && [ "$BRANCH" = "main" ]; then
+  echo "pre-push: syncing with origin/main before push..."
+  git fetch origin main --quiet || { echo "pre-push: fetch failed, aborting"; exit 1; }
+
+  LOCAL=$(git rev-parse HEAD)
+  UPSTREAM=$(git rev-parse origin/main)
+
+  if [ "$LOCAL" = "$UPSTREAM" ]; then
+    echo "pre-push: already up to date"
+    exit 0
+  fi
+
+  git rebase origin/main || {
+    echo "pre-push: rebase failed — resolve conflicts and push manually"
+    exit 1
+  }
+
+  echo "pre-push: sync complete"
+fi
+
+exit 0

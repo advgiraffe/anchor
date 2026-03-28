@@ -30,18 +30,17 @@ pnpm test:integration
 pnpm typecheck
 ```
 
-### Git sync before push
+### Git hooks
 
-This repo uses `@semantic-release/git` in CI, which can create release commits on `main` after GitHub workflows run. That means remote `main` can advance even if your local branch was up-to-date when you started.
+A pre-push hook in `.githooks/pre-push` auto-syncs with `origin/main` before any push to avoid non-fast-forward failures. It's enabled automatically when you run `pnpm install` (the `prepare` script sets `core.hooksPath`).
 
-Before pushing local commits, always sync first:
+If you're setting up a fresh clone manually:
 
 ```bash
-git fetch origin
-git rebase origin/main
+git config core.hooksPath .githooks
 ```
 
-Then push. This avoids non-fast-forward push failures and keeps local commits cleanly on top of release-generated commits.
+**Why this is needed:** `@semantic-release/git` creates version bump commits on `main` after CI publishes to npm, so remote `main` can advance past your local even when you were up-to-date at the start of your work.
 
 ## Architecture
 
