@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/advgiraffe/anchor/compare/v1.7.0...v1.8.0) (2026-03-28)
+
+
+### Features
+
+* **core:** add .NET baseline extraction for routes, schemas, and screens ([6d228b3](https://github.com/advgiraffe/anchor/commit/6d228b386765e750193b3b04dff9b0c7647cd85b))
+
 # [1.7.0](https://github.com/advgiraffe/anchor/compare/v1.6.0...v1.7.0) (2026-03-22)
 
 
