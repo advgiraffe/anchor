@@ -185,13 +185,24 @@ Deterministic extraction requires no API key and runs fast:
 
 | Extractor | What it finds | Output |
 |---|---|---|
-| `RouteExtractor` | Express routes, Fastify, Hono, Next.js App Router, tRPC | `api/endpoints.md` |
-| `SchemaExtractor` | Prisma, Drizzle, TypeORM, Mongoose, Zod schemas, JSON Schema | `data/models.md` |
-| `ScreenExtractor` | React component tree, Next.js pages, React Native navigators | `screens/*.md` |
+| `RouteExtractor` | Express routes, Fastify, Hono, Next.js App Router, tRPC, ASP.NET Core endpoint routing (`MapGet`, `MapPost`, etc.), Razor Pages route templates | `api/endpoints.md` |
+| `SchemaExtractor` | Prisma, Drizzle, TypeORM, Mongoose, Zod schemas, JSON Schema, EF migration/model snapshot signals, SQL schema migration artifacts, API contract schemas | `data/models.md` |
+| `ScreenExtractor` | React component tree, Next.js pages, React Native navigators, Razor Pages (`Pages/**/*.cshtml`), Razor views/components (`Views/**/*.cshtml`, `*.razor`) | `screens/*.md` |
 | `OpenApiExtractor` | Existing OpenAPI/Swagger files (passthrough, no rewrite needed) | `api/openapi.yaml` |
 | `AssetExtractor` | PNGs, JPGs, SVGs in component dirs, public/, assets/ | `assets/**` (copied) |
 | `PackageExtractor` | package.json, dependencies, scripts, framework detection | `architecture.md` (partial) |
 | `ConfigExtractor` | Environment variables, feature flags, build config | `architecture.md` (partial) |
+
+### 6.2.1 Extraction Reliability Requirements
+
+Baseline extraction must be resilient across frameworks and language conventions.
+
+- Route extraction MUST treat framework APIs and route declarations as primary evidence (for example endpoint builder calls, route templates, and routing directives), not class-name conventions.
+- Schema/model extraction MUST prioritize explicit schema sources (migration artifacts, contract schemas, and declared database mappings) over class-name heuristics.
+- Razor Pages route detection MUST support default file-system routing and explicit `@page` templates.
+- Multi-project repositories MUST be supported; extractors should preserve project-relative provenance to avoid collisions.
+- For very large repos, extraction SHOULD remain deterministic and bounded by documented sampling/reporting limits.
+- Language/framework support MUST be strategy-based (pluggable extractors) rather than accumulating all logic in one monolithic class.
 
 **Pass 2 — LLM Section Generation (Haiku, batched)**
 
@@ -242,6 +253,9 @@ During static analysis, Anchor detects signals that suggest consumer targets:
 | `react-native`, `expo` in dependencies | `ios`, `android` |
 | `.swift` files or `ios/` directory | `ios` |
 | `.kt` files or `android/` directory | `android` |
+| `.sln` or `.csproj` files | `backend` |
+| ASP.NET Core endpoint routing usage (`MapGet`, `MapPost`, etc.) | `backend` |
+| Razor Pages files (`Pages/**/*.cshtml`) or `@page` directives | `frontend` |
 | OpenAPI spec present | `api-consumer` |
 | `jest`, `playwright`, `cypress` in devDependencies | `qa` |
 | `prisma`, `drizzle`, database config | `backend` |
