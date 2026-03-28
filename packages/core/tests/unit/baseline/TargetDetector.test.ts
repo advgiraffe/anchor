@@ -51,4 +51,26 @@ describe("TargetDetector", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it("detects backend and frontend targets from .NET and Razor signals", () => {
+    const dir = mkdtempSync(join(tmpdir(), "anchor-targets-dotnet-"));
+
+    try {
+      mkdirSync(join(dir, "Api"), { recursive: true });
+      mkdirSync(join(dir, "Web", "Pages", "Home"), { recursive: true });
+
+      writeFileSync(join(dir, "TradeTrack.sln"), "", "utf8");
+      writeFileSync(join(dir, "Api", "Api.csproj"), "<Project Sdk=\"Microsoft.NET.Sdk.Web\" />", "utf8");
+      writeFileSync(join(dir, "Api", "Program.cs"), "app.MapGet(\"/health\", () => Results.Ok());", "utf8");
+      writeFileSync(join(dir, "Web", "Pages", "Home", "Index.cshtml"), "@page\n<h1>Home</h1>", "utf8");
+
+      const detector = new TargetDetector();
+      const names = detector.detect(dir).map((target) => target.name);
+
+      expect(names).toContain("backend");
+      expect(names).toContain("frontend");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });

@@ -45,6 +45,42 @@ describe("RouteExtractor", () => {
 			rmSync(dir, { recursive: true, force: true });
 		}
 	});
+
+	it("extracts ASP.NET minimal API routes and Razor pages", () => {
+		const dir = mkdtempSync(join(tmpdir(), "anchor-routes-dotnet-"));
+		try {
+			mkdirSync(join(dir, "Api"), { recursive: true });
+			mkdirSync(join(dir, "Web", "Pages", "Accounts"), { recursive: true });
+
+			writeFileSync(
+				join(dir, "Api", "Program.cs"),
+				[
+					"var api = app.MapGroup(\"/api\");",
+					"api.MapGet(\"/health\", () => Results.Ok());",
+					"api.MapPost(\"/orders\", () => Results.Ok());",
+					"app.MapMethods(\"/status\", [\"GET\", \"HEAD\"], () => Results.Ok());",
+				].join("\n"),
+				"utf8",
+			);
+
+			writeFileSync(
+				join(dir, "Web", "Pages", "Accounts", "Login.cshtml"),
+				["@page \"/signin\"", "<h1>Sign in</h1>"].join("\n"),
+				"utf8",
+			);
+
+			const routes = new RouteExtractor().extract(dir);
+			const routeTitles = routes.map((route) => route.title);
+
+			expect(routeTitles).toContain("GET /api/health");
+			expect(routeTitles).toContain("POST /api/orders");
+			expect(routeTitles).toContain("GET /status");
+			expect(routeTitles).toContain("HEAD /status");
+			expect(routeTitles).toContain("GET /signin");
+		} finally {
+			rmSync(dir, { recursive: true, force: true });
+		}
+	});
 });
 
 describe("SchemaExtractor", () => {
@@ -89,6 +125,63 @@ describe("SchemaExtractor", () => {
 			rmSync(dir, { recursive: true, force: true });
 		}
 	});
+
+	it("extracts migration-first schemas and contract DTOs for .NET projects", () => {
+		const dir = mkdtempSync(join(tmpdir(), "anchor-schema-dotnet-"));
+		try {
+			mkdirSync(join(dir, "Api", "Migrations"), { recursive: true });
+			mkdirSync(join(dir, "Api", "Contracts"), { recursive: true });
+			mkdirSync(join(dir, "db", "migrations"), { recursive: true });
+			mkdirSync(join(dir, "Api", "openapi"), { recursive: true });
+
+			writeFileSync(
+				join(dir, "Api", "Migrations", "20260301_AddUsers.cs"),
+				[
+					"public partial class AddUsers : Migration",
+					"{",
+					"    protected override void Up(MigrationBuilder migrationBuilder)",
+					"    {",
+					"        migrationBuilder.CreateTable(name: \"Users\", columns: table => new { });",
+					"    }",
+					"}",
+				].join("\n"),
+				"utf8",
+			);
+
+			writeFileSync(
+				join(dir, "db", "migrations", "001_init.sql"),
+				"CREATE TABLE Orders (Id INT PRIMARY KEY);",
+				"utf8",
+			);
+
+			writeFileSync(
+				join(dir, "Api", "Contracts", "OrderDto.cs"),
+				"public record OrderDto(int Id, decimal Total);",
+				"utf8",
+			);
+
+			writeFileSync(
+				join(dir, "Api", "openapi", "openapi.yaml"),
+				[
+					"openapi: 3.0.0",
+					"components:",
+					"  schemas:",
+					"    TradeRequest:",
+					"      type: object",
+				].join("\n"),
+				"utf8",
+			);
+
+			const schemas = new SchemaExtractor().extract(dir);
+			const names = schemas.map((schema) => schema.name);
+			expect(names).toContain("Users");
+			expect(names).toContain("Orders");
+			expect(names).toContain("OrderDto");
+			expect(names).toContain("TradeRequest");
+		} finally {
+			rmSync(dir, { recursive: true, force: true });
+		}
+	});
 });
 
 describe("ScreenExtractor", () => {
@@ -114,6 +207,41 @@ describe("ScreenExtractor", () => {
 			const names = screens.map((screen) => screen.name);
 			expect(names).toContain("dashboard");
 			expect(names).toContain("LoginScreen");
+		} finally {
+			rmSync(dir, { recursive: true, force: true });
+		}
+	});
+
+	it("extracts Razor pages, MVC views, and Blazor components", () => {
+		const dir = mkdtempSync(join(tmpdir(), "anchor-screen-dotnet-"));
+		try {
+			mkdirSync(join(dir, "Web", "Pages", "Trades"), { recursive: true });
+			mkdirSync(join(dir, "Web", "Views", "Reports"), { recursive: true });
+			mkdirSync(join(dir, "Web", "Components"), { recursive: true });
+
+			writeFileSync(
+				join(dir, "Web", "Pages", "Trades", "Index.cshtml"),
+				"@page\n<h1>Trades</h1>",
+				"utf8",
+			);
+
+			writeFileSync(
+				join(dir, "Web", "Views", "Reports", "Summary.cshtml"),
+				"<h1>Summary</h1>",
+				"utf8",
+			);
+
+			writeFileSync(
+				join(dir, "Web", "Components", "Dashboard.razor"),
+				"<h1>Dashboard</h1>",
+				"utf8",
+			);
+
+			const screens = new ScreenExtractor().extract(dir);
+			const kinds = screens.map((screen) => screen.kind);
+			expect(kinds).toContain("razor-page");
+			expect(kinds).toContain("razor-view");
+			expect(kinds).toContain("blazor-component");
 		} finally {
 			rmSync(dir, { recursive: true, force: true });
 		}

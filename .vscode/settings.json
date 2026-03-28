@@ -1,2 +1,16 @@
 {
+    "chat.tools.terminal.autoApprove": {
+        "/^pnpm --filter @anchor_app/core build ; pnpm --filter @anchor_app/anchor build ; node packages/cli/dist/index\\.cjs baseline --src \\. --out tmp/self-baseline --format json$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node packages/cli/dist/index\\.cjs compare --file docs/anchor-spec\\.md --from HEAD~1 --to HEAD --format markdown$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node packages/cli/dist/index\\.cjs compare --corpus docs --from HEAD~1 --to HEAD --format markdown$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
 }

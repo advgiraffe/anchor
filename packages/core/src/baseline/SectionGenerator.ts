@@ -151,7 +151,14 @@ function listFiles(root: string): string[] {
 
 function walk(root: string, current: string, out: string[]): void {
 	for (const entry of readdirSync(current)) {
-		if (entry === ".git" || entry === "node_modules") {
+		if (
+			entry === ".git" ||
+			entry === "node_modules" ||
+			entry === "dist" ||
+			entry === "coverage" ||
+			entry === "bin" ||
+			entry === "obj"
+		) {
 			continue;
 		}
 

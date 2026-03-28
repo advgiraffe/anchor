@@ -46,6 +46,18 @@ export class TargetDetector {
 			detectedNames.add("backend");
 		}
 
+		if (scan.hasExtension(".sln") || scan.hasExtension(".csproj")) {
+			detectedNames.add("backend");
+		}
+
+		if (scan.hasEndpointRoutingUsage()) {
+			detectedNames.add("backend");
+		}
+
+		if (scan.hasRazorPagesSignals()) {
+			detectedNames.add("frontend");
+		}
+
 		if (scan.hasFile("prisma/schema.prisma")) {
 			detectedNames.add("backend");
 		}
@@ -115,12 +127,20 @@ const DEFAULT_TARGETS: Record<string, AnchorTargetConfig> = {
 		fileGlobs: ["api/**", "schemas/**", "**/*.yaml"],
 		minSeverity: "INFORMATIONAL",
 	},
+	frontend: {
+		name: "frontend",
+		description: "Frontend/UI implementation agent",
+		fileGlobs: ["Pages/**", "Views/**", "**/*.cshtml", "**/*.razor"],
+		minSeverity: "INFORMATIONAL",
+	},
 };
 
 function scanTree(root: string): {
 	hasDirectory: (dirName: string) => boolean;
 	hasExtension: (extension: string) => boolean;
 	hasOpenApiLikeFile: () => boolean;
+	hasEndpointRoutingUsage: () => boolean;
+	hasRazorPagesSignals: () => boolean;
 	hasFile: (filePath: string) => boolean;
 } {
 	const directories = new Set<string>();
@@ -141,6 +161,36 @@ function scanTree(root: string): {
 					lower.endsWith("/openapi.json")
 				);
 			}),
+		hasEndpointRoutingUsage: () =>
+			Array.from(files).some((file) => {
+				if (!file.toLowerCase().endsWith(".cs")) {
+					return false;
+				}
+				const absolute = join(root, file);
+				try {
+					const content = readFileSync(absolute, "utf8");
+					return /\bMap(Get|Post|Put|Patch|Delete|Methods|Group)\s*\(/.test(content);
+				} catch {
+					return false;
+				}
+			}),
+		hasRazorPagesSignals: () =>
+			Array.from(files).some((file) => {
+				const lower = file.toLowerCase();
+				if (lower.includes("/pages/") && lower.endsWith(".cshtml")) {
+					return true;
+				}
+				if (!lower.endsWith(".cshtml")) {
+					return false;
+				}
+				const absolute = join(root, file);
+				try {
+					const content = readFileSync(absolute, "utf8");
+					return /(^|\s)@page(?:\s|$)/m.test(content);
+				} catch {
+					return false;
+				}
+			}),
 		hasFile: (filePath) => files.has(filePath.replace(/\\/g, "/")),
 	};
 }
@@ -152,7 +202,14 @@ function walk(
 	files: Set<string>,
 ): void {
 	for (const entry of readdirSync(current)) {
-		if (entry === ".git" || entry === "node_modules") {
+		if (
+			entry === ".git" ||
+			entry === "node_modules" ||
+			entry === "dist" ||
+			entry === "coverage" ||
+			entry === "bin" ||
+			entry === "obj"
+		) {
 			continue;
 		}
 

@@ -33,7 +33,14 @@ export abstract class BaseExtractor {
 
 function walk(root: string, current: string, out: string[], extensions?: string[]): void {
 	for (const entry of readdirSync(current)) {
-		if (entry === ".git" || entry === "node_modules" || entry === "dist" || entry === "coverage") {
+		if (
+			entry === ".git" ||
+			entry === "node_modules" ||
+			entry === "dist" ||
+			entry === "coverage" ||
+			entry === "bin" ||
+			entry === "obj"
+		) {
 			continue;
 		}
 
