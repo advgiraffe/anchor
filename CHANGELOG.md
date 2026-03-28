@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/advgiraffe/anchor/compare/v1.8.0...v1.8.1) (2026-03-28)
+
+
+### Bug Fixes
+
+* **cli:** report package version correctly ([ace07fe](https://github.com/advgiraffe/anchor/commit/ace07fe0389653d0eafb82841e3130a1eab26f10))
+
 # [1.8.0](https://github.com/advgiraffe/anchor/compare/v1.7.0...v1.8.0) (2026-03-28)
 
 
