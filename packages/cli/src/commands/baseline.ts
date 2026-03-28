@@ -6,7 +6,7 @@ import {
 	type AnchorTargetConfig,
 	type BaselineSection,
 	type CorpusWriteResult,
-} from "@anchor_app/core";
+} from "../core/index.js";
 
 export interface BaselineCommandOptions {
 	src: string;

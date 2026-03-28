@@ -1,6 +1,6 @@
 import type { Command } from "commander";
 import { resolve } from "node:path";
-import { ConfigLoader } from "@anchor_app/core";
+import { ConfigLoader } from "../core/index.js";
 
 export interface ValidateCommandOptions {
   config: string;

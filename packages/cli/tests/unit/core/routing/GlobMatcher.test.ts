@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GlobMatcher } from "../../../src/routing/GlobMatcher.js";
+import { GlobMatcher } from "../../../../src/core/routing/GlobMatcher.js";
 
 describe("GlobMatcher", () => {
   const matcher = new GlobMatcher();

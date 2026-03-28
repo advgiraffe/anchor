@@ -1,4 +1,4 @@
-import type { AnchorResult } from "@anchor_app/core";
+import type { AnchorResult } from "../core/index.js";
 import { formatInstructions } from "./instructions.js";
 import { formatJson } from "./json.js";
 import { formatMarkdown } from "./markdown.js";

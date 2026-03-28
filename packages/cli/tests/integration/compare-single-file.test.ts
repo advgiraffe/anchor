@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { AnchorResult, Severity } from "@anchor_app/core";
+import type { AnchorResult, Severity } from "../../src/core/index.js";
 import { compareAction } from "../../src/commands/compare.js";
 import { createTempGitRepo } from "../../../../tests/helpers/tempGitRepo.js";
 

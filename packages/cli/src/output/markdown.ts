@@ -1,4 +1,4 @@
-import type { AnchorResult } from "@anchor_app/core";
+import type { AnchorResult } from "../core/index.js";
 
 export function formatMarkdown(result: AnchorResult): string {
 	const lines: string[] = [];

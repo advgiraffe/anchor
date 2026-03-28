@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { AnchorResult } from "../../../src/models/index.js";
-import { TargetRouter, type RouteTarget } from "../../../src/routing/TargetRouter.js";
+import type { AnchorResult } from "../../../../src/core/models/index.js";
+import { TargetRouter, type RouteTarget } from "../../../../src/core/routing/TargetRouter.js";
 
 const sampleResult: AnchorResult = {
   metadata: {

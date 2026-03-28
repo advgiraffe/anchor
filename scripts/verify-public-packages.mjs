@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const packagePaths = [
-  "packages/core/package.json",
   "packages/cli/package.json",
 ];
 
@@ -13,8 +12,8 @@ for (const relativePath of packagePaths) {
   const raw = readFileSync(absolutePath, "utf8");
   const pkg = JSON.parse(raw);
 
-  if (!pkg.name || typeof pkg.name !== "string" || !pkg.name.startsWith("@")) {
-    failures.push(`${relativePath}: expected scoped package name, got '${pkg.name ?? "<missing>"}'`);
+  if (!pkg.name || typeof pkg.name !== "string" || !pkg.name.startsWith("@anchorspec/")) {
+    failures.push(`${relativePath}: expected @anchorspec/ scoped package name, got '${pkg.name ?? "<missing>"}'`);
   }
 
   const access = pkg.publishConfig?.access;

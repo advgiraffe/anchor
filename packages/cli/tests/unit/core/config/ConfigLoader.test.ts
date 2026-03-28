@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { ConfigLoader } from "../../../src/config/ConfigLoader.js";
+import { ConfigLoader } from "../../../../src/core/config/ConfigLoader.js";
 
 describe("ConfigLoader", () => {
   it("loads targets from .anchor.yaml", () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { InstructionGenerator } from "../../../src/llm/InstructionGenerator.js";
-import type { TargetRoute } from "../../../src/routing/TargetRouter.js";
+import { InstructionGenerator } from "../../../../src/core/llm/InstructionGenerator.js";
+import type { TargetRoute } from "../../../../src/core/routing/TargetRouter.js";
 
 describe("InstructionGenerator", () => {
   it("builds per-target instruction text from routed deltas", () => {

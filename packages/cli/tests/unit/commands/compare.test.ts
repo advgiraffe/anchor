@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { compareAction } from "../../../src/commands/compare.js";
 import { createTempGitRepo } from "../../../../../tests/helpers/tempGitRepo.js";
-import { SectionClassifier, type AnchorResult } from "@anchor_app/core";
+import { SectionClassifier, type AnchorResult } from "../../../src/core/index.js";
 
 describe("compareAction", () => {
   it("runs compare against a temporary git repository without touching the main repo", async () => {

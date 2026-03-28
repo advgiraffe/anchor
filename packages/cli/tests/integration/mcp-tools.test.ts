@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import type { Severity } from "@anchor_app/core";
+import type { Severity } from "../../src/core/index.js";
 import { AnchorMcpServer } from "../../src/mcp/McpServer.js";
 import { createTempGitRepo } from "../../../../tests/helpers/tempGitRepo.js";
 

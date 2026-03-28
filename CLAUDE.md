@@ -6,36 +6,29 @@ This file provides context for AI agents (Claude Code, etc.) working in this rep
 
 Anchor is a requirements delta agent. It compares versions of spec/doc content between git refs, detects section-level changes, and classifies impact severity so teams know what matters before a release.
 
-Two packages:
-- `@anchor_app/core` — diff engine, git extraction, LLM classification, models
-- `@anchor_app/anchor` — CLI (`compare`, `baseline`, `doctor`, `validate`, `mcp`, …)
+Single published package: `@anchorspec/cli` — CLI + MCP server (binary name: `anchor`)
+
+Source layout within `packages/cli/`:
+- `src/core/` — diff engine, git extraction, LLM classification, models
+- `src/commands/` — CLI commands (`compare`, `baseline`, `doctor`, `validate`, `mcp`, …)
+- `src/mcp/` — MCP server and tool implementations
+- `src/output/` — output formatters (JSON, Markdown, SARIF, instructions)
 
 ## Build & test
 
 ```bash
-# Build all packages
+# Build
 pnpm build
 
-# Unit + integration tests for a single package
-pnpm --filter @anchor_app/anchor test
+# Unit + integration tests
+pnpm test
 
 # Integration tests only
-pnpm --filter @anchor_app/anchor test:integration
+pnpm test:integration
 
 # Typecheck
-pnpm --filter @anchor_app/core typecheck
-pnpm --filter @anchor_app/anchor typecheck
+pnpm typecheck
 ```
-
-### Stale package export gotcha
-
-`@anchor_app/core` resolves from its **compiled `dist/`**, not source. When you add a new export to `packages/core/src/`, the CLI package will not see it until core is rebuilt:
-
-```bash
-pnpm --filter @anchor_app/core build
-```
-
-The CLI `test` and `test:integration` scripts already do this automatically. If you add exports to core and run core tests directly (`pnpm --filter @anchor_app/core test`), those tests import from source via Vitest and work without a build. But cross-package consumers always need the build step first.
 
 ### Git sync before push
 
@@ -58,11 +51,11 @@ compare --corpus  →  GitTreeDiffer → CorpusTreeDiffer (per-file: GitExtracto
 ```
 
 Key source locations:
-- `packages/core/src/models/index.ts` — shared types (`AnchorResult`, `FileDelta`, `SectionDelta`, `Severity`, `ChangeType`)
-- `packages/core/src/diff/CorpusTreeDiffer.ts` — multi-file corpus diff
-- `packages/core/src/git/GitTreeDiffer.ts` — git file-tree diffing (add/remove/modify/rename)
-- `packages/core/src/git/GitExtractor.ts` — extract file content at a git ref
-- `packages/core/src/diff/text/SectionDiffer.ts` — section-level markdown diff
+- `packages/cli/src/core/models/index.ts` — shared types (`AnchorResult`, `FileDelta`, `SectionDelta`, `Severity`, `ChangeType`)
+- `packages/cli/src/core/diff/CorpusTreeDiffer.ts` — multi-file corpus diff
+- `packages/cli/src/core/git/GitTreeDiffer.ts` — git file-tree diffing (add/remove/modify/rename)
+- `packages/cli/src/core/git/GitExtractor.ts` — extract file content at a git ref
+- `packages/cli/src/core/diff/text/SectionDiffer.ts` — section-level markdown diff
 - `packages/cli/src/commands/compare.ts` — compare command; accepts `--file` or `--corpus`
 
 ## Test strategy
@@ -79,11 +72,9 @@ Completed:
 - [x] Corpus-level compare (`--corpus`) with file add/remove/modify/rename
 - [x] Integration tests for corpus compare
 - [x] Output formatters: JSON, Markdown, SARIF, instructions (`packages/cli/src/output/`)
-- [x] Target routing + instruction generation (`packages/core/src/routing/`, `packages/core/src/llm/InstructionGenerator.ts`)
+- [x] Target routing + instruction generation (`packages/cli/src/core/routing/`, `packages/cli/src/core/llm/InstructionGenerator.ts`)
 - [x] Baseline command end-to-end + `init`, `validate`, `targets` commands
 - [x] MCP command + tools (`packages/cli/src/mcp/`) — 4 tools: `anchor_compare`, `anchor_compare_corpus`, `anchor_targets`, `anchor_baseline_status`
 - [x] Integration tests for MCP tools (`packages/cli/tests/integration/mcp-tools.test.ts`)
-
-Next up (in order):
-- [x] Image diff pipeline (`packages/core/src/diff/images/`)
-- [x] Extractor implementations: routes, schemas, screens (`packages/core/src/baseline/extractors/`)
+- [x] Image diff pipeline (`packages/cli/src/core/diff/images/`)
+- [x] Extractor implementations: routes, schemas, screens (`packages/cli/src/core/baseline/extractors/`)

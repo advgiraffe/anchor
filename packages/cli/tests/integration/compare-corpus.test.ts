@@ -2,7 +2,7 @@ import { rmSync } from "node:fs";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
-import type { Severity } from "@anchor_app/core";
+import type { Severity } from "../../src/core/index.js";
 import { compareAction } from "../../src/commands/compare.js";
 import { createTempGitRepo } from "../../../../tests/helpers/tempGitRepo.js";
 

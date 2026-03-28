@@ -1,4 +1,4 @@
-import type { AnchorResult, Severity } from "@anchor_app/core";
+import type { AnchorResult, Severity } from "../core/index.js";
 
 interface SarifLog {
   version: "2.1.0";

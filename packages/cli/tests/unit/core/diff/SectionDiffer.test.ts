@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { SectionDiffer } from "../../../src/diff/text/SectionDiffer.js";
-import type { ParsedSection } from "../../../src/diff/text/parsers/MarkdownParser.js";
+import { SectionDiffer } from "../../../../src/core/diff/text/SectionDiffer.js";
+import type { ParsedSection } from "../../../../src/core/diff/text/parsers/MarkdownParser.js";
 
 function section(id: string, title: string, content: string, level = 2): ParsedSection {
   return {

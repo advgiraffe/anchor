@@ -2,7 +2,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { CorpusWriter } from "../../../src/baseline/CorpusWriter.js";
+import { CorpusWriter } from "../../../../src/core/baseline/CorpusWriter.js";
 
 describe("CorpusWriter", () => {
   it("writes baseline sections and .anchor.yaml", () => {

@@ -5,6 +5,7 @@ export interface McpCommandOptions {
 	verbose?: boolean;
 	transport?: "stdio" | "sse";
 	port?: number;
+	cwd?: string;
 }
 
 export function registerMcpCommand(program: Command): void {
@@ -22,6 +23,10 @@ export function registerMcpCommand(program: Command): void {
 			"Port for SSE transport (default 3456)",
 			"3456",
 		)
+		.option(
+			"--cwd <path>",
+			"Working directory / git repo root (defaults to current directory)",
+		)
 		.action(async (opts: McpCommandOptions) => {
 			try {
 				await mcpAction(opts);
@@ -36,7 +41,7 @@ export function registerMcpCommand(program: Command): void {
 
 export async function mcpAction(opts: McpCommandOptions = {}): Promise<void> {
 	const server = new AnchorMcpServer({
-		cwd: process.cwd(),
+		cwd: opts.cwd ?? process.cwd(),
 		verbose: opts.verbose ?? false,
 	});
 

@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { TargetDetector } from "../../../src/baseline/TargetDetector.js";
+import { TargetDetector } from "../../../../src/core/baseline/TargetDetector.js";
 
 describe("TargetDetector", () => {
   it("detects backend and qa targets from package dependencies", () => {

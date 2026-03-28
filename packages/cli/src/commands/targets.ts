@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { ConfigLoader, type AnchorTargetConfig } from "@anchor_app/core";
+import { ConfigLoader, type AnchorTargetConfig } from "../core/index.js";
 
 export interface TargetsCommandOptions {
 	config: string;

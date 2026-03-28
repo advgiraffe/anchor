@@ -3,7 +3,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { Command } from "commander";
-import { AnchorError } from "@anchor_app/core";
+import { AnchorError } from "./core/index.js";
 import { registerBaselineCommand } from "./commands/baseline.js";
 import { registerCompareCommand } from "./commands/compare.js";
 import { registerWatchCommand } from "./commands/watch.js";
@@ -77,7 +77,7 @@ function findVersionInParentPackageJson(startDir: string): string | undefined {
 					name?: string;
 					version?: string;
 				};
-				if (parsed.name === "@anchor_app/anchor" && parsed.version) {
+				if (parsed.name === "@anchorspec/cli" && parsed.version) {
 					return parsed.version;
 				}
 			} catch {

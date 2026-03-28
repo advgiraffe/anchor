@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MarkdownParser } from "../../../src/diff/text/parsers/MarkdownParser.js";
+import { MarkdownParser } from "../../../../src/core/diff/text/parsers/MarkdownParser.js";
 
 describe("MarkdownParser", () => {
   it("splits markdown into heading-based sections", () => {

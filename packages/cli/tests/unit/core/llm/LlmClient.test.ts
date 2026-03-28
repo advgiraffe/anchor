@@ -4,8 +4,8 @@ import {
   buildMissingAnthropicKeyMessage,
   getAnthropicEnvVarCandidates,
   resolveAnthropicApiKey,
-} from "../../../src/llm/LlmClient.js";
-import { SectionClassifier } from "../../../src/llm/SectionClassifier.js";
+} from "../../../../src/core/llm/LlmClient.js";
+import { SectionClassifier } from "../../../../src/core/llm/SectionClassifier.js";
 
 describe("Anthropic key resolution", () => {
   it("prefers Anchor-specific env vars before provider default", () => {

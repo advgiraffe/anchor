@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { TargetDetector, type AnchorTargetConfig } from "@anchor_app/core";
+import { TargetDetector, type AnchorTargetConfig } from "../core/index.js";
 
 export type InitHost =
   | "claude"

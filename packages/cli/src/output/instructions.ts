@@ -1,4 +1,4 @@
-import { InstructionGenerator, TargetRouter, type AnchorResult } from "@anchor_app/core";
+import { InstructionGenerator, TargetRouter, type AnchorResult } from "../core/index.js";
 
 export function formatInstructions(result: AnchorResult): string {
 	const lines: string[] = [];

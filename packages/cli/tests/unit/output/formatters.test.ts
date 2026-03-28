@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { AnchorResult } from "@anchor_app/core";
+import type { AnchorResult } from "../../../src/core/index.js";
 import { formatResult, resolveFormatter } from "../../../src/output/FormatterRegistry.js";
 
 const sampleResult: AnchorResult = {

@@ -2,10 +2,10 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { RouteExtractor } from "../../../src/baseline/extractors/RouteExtractor.js";
-import { SchemaExtractor } from "../../../src/baseline/extractors/SchemaExtractor.js";
-import { ScreenExtractor } from "../../../src/baseline/extractors/ScreenExtractor.js";
-import { SectionGenerator } from "../../../src/baseline/SectionGenerator.js";
+import { RouteExtractor } from "../../../../src/core/baseline/extractors/RouteExtractor.js";
+import { SchemaExtractor } from "../../../../src/core/baseline/extractors/SchemaExtractor.js";
+import { ScreenExtractor } from "../../../../src/core/baseline/extractors/ScreenExtractor.js";
+import { SectionGenerator } from "../../../../src/core/baseline/SectionGenerator.js";
 
 describe("RouteExtractor", () => {
 	it("extracts express and next app router routes", () => {

@@ -17,7 +17,7 @@ import {
   ConsoleLogger,
   type Logger,
   type Severity,
-} from "@anchor_app/core";
+} from "../core/index.js";
 import { resolveFormatter, type OutputFormat } from "../output/FormatterRegistry.js";
 
 export interface CompareCommandOptions {

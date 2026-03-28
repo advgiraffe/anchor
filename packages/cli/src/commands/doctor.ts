@@ -4,7 +4,7 @@ import {
   ANTHROPIC_KEY_ENV_OVERRIDE_VAR,
   getAnthropicEnvVarCandidates,
   resolveAnthropicApiKey,
-} from "@anchor_app/core";
+} from "../core/index.js";
 
 interface CheckResult {
   name: string;

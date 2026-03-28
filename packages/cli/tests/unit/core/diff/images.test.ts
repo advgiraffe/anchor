@@ -1,14 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { classifyImageRole } from "../../../src/diff/images/ImageRoleClassifier.js";
+import { classifyImageRole } from "../../../../src/core/diff/images/ImageRoleClassifier.js";
 import {
 	computeSha256,
 	computeImageHash,
 	hammingDistance,
-} from "../../../src/diff/images/PerceptualHasher.js";
-import { ImageChangeDetector } from "../../../src/diff/images/ImageChangeDetector.js";
-import { CrossAssetCorrelator } from "../../../src/diff/CrossAssetCorrelator.js";
-import type { SectionChange } from "../../../src/diff/text/SectionDiffer.js";
-import type { CorpusFileChange } from "../../../src/diff/CorpusTreeDiffer.js";
+} from "../../../../src/core/diff/images/PerceptualHasher.js";
+import { ImageChangeDetector } from "../../../../src/core/diff/images/ImageChangeDetector.js";
+import { CrossAssetCorrelator } from "../../../../src/core/diff/CrossAssetCorrelator.js";
+import type { SectionChange } from "../../../../src/core/diff/text/SectionDiffer.js";
+import type { CorpusFileChange } from "../../../../src/core/diff/CorpusTreeDiffer.js";
 
 // ── ImageRoleClassifier ──────────────────────────────────────────────────────
 

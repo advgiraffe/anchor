@@ -1,7 +1,22 @@
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { McpServer as MCPServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { z } from "zod";
+
+function loadPackageVersion(): string {
+	try {
+		const dir = typeof __dirname !== "undefined" ? __dirname : dirname(fileURLToPath(import.meta.url));
+		const pkg = JSON.parse(readFileSync(resolve(dir, "..", "package.json"), "utf8")) as { version: string };
+		return pkg.version;
+	} catch {
+		return "0.0.0";
+	}
+}
+
+const PKG_VERSION = loadPackageVersion();
 
 import type {
 	AnchorTargetConfig,
@@ -10,7 +25,7 @@ import type {
 	AnchorConfig,
 	Severity,
 	CorpusFileChange,
-} from "@anchor_app/core";
+} from "../core/index.js";
 import {
 	ConfigLoader,
 	GitExtractor,
@@ -21,7 +36,7 @@ import {
 	GitTreeDiffer,
 	ConsoleLogger,
 	type Logger,
-} from "@anchor_app/core";
+} from "../core/index.js";
 
 export interface McpClassifier {
 	classifyChange(
@@ -83,7 +98,7 @@ export class AnchorMcpServer {
 		// Initialize MCP server
 		this.server = new MCPServer({
 			name: "anchor",
-			version: "1.0.0",
+			version: PKG_VERSION,
 		});
 
 		this.setupTools();

@@ -1,5 +1,5 @@
 {
-  "name": "@anchor_app/anchor",
+  "name": "@anchorspec/cli",
   "version": "1.8.1",
   "type": "module",
   "bin": {
@@ -22,13 +22,15 @@
   },
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts",
-    "test": "pnpm --filter @anchor_app/core build && vitest run",
-    "test:integration": "pnpm --filter @anchor_app/core build && vitest run tests/integration",
+    "test": "vitest run",
+    "test:integration": "vitest run tests/integration",
     "lint": "eslint src",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@anchor_app/core": "workspace:*",
-    "commander": "^14.0.1"
+    "@anthropic-ai/sdk": "^0.80.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "commander": "^14.0.1",
+    "yaml": "^2.8.3"
   }
 }
