@@ -1,0 +1,17 @@
+version: 3
+targets:
+  - name: api-consumer
+    description: Frontend/API consumer agent
+    fileGlobs:
+      - api/**
+      - contracts/**
+      - "**/*.yaml"
+      - "**/*.json"
+    minSeverity: INFORMATIONAL
+  - name: backend
+    description: Backend/API implementation agent
+    fileGlobs:
+      - api/**
+      - schemas/**
+      - "**/*.yaml"
+    minSeverity: INFORMATIONAL
